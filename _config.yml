@@ -1,0 +1,7 @@
+title: "Minimalist Portfolio"
+description: "A simple portfolio site built with Jekyll"
+url: "https://yourusername.github.io"
+baseurl: ""
+
+markdown: kramdown
+highlighter: rouge

