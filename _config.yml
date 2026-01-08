@@ -1,7 +1,7 @@
 title: "Minimalist Portfolio"
 description: "A simple portfolio site built with Jekyll"
-url: "https://yourusername.github.io"
-baseurl: ""
+url: "https://wabuenaventura.github.io"
+baseurl: "/gooduck"
 
 markdown: kramdown
 highlighter: rouge
