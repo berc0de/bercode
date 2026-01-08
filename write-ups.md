@@ -11,7 +11,7 @@ A collection of recent write-ups and CTF walkthroughs.
 
 <div class="writeups-grid">
 {% for post in site.posts %}
-  <a href="{{ post.url }}" class="writeup-card-link" data-title="{{ post.title | escape }}" data-excerpt="{{ post.excerpt | escape }}" data-tags="{% for tag in post.tags %}{{ tag | escape }} {% endfor %}">
+  <a href="{{ site.baseurl }}{{ post.url }}" class="writeup-card-link" data-title="{{ post.title | escape }}" data-excerpt="{{ post.excerpt | escape }}" data-tags="{% for tag in post.tags %}{{ tag | escape }} {% endfor %}">
     <article class="writeup-card">
       {% if post.image %}
         <img src="{{ post.image }}" alt="{{ post.title }}" class="writeup-thumb">
