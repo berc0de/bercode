@@ -93,4 +93,4 @@ title: Home
   <div class="writeups-all-btn-container" style="text-align:center; margin-top:2em;">
     <a href="/gooduck/write-ups.html" class="writeups-all-btn" style="display:inline-block; padding:0.75em 2em; background:#222; color:#fff; border-radius:4px; text-decoration:none; font-weight:bold;">View All Write-ups</a>
   </div>
-</section>
+  </section>

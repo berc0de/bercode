@@ -8,7 +8,7 @@
 <body>
   <!-- Spotlight Cursor Effect -->
   <div class="spotlight"></div>
-  <div class="snow-container"></div>
+  <div class="duck-container"></div>
 
   <div class="container">
     <div class="content-area">
@@ -182,35 +182,50 @@
         setTimeout(typeWriter, 500);
       }
 
-      // Snow particle effect on logo hover
+      // Duck rain effect on profile image hover
       const logo = document.querySelector('.profile-image');
-      const snowContainer = document.querySelector('.snow-container');
-      let snowInterval;
+      const duckContainer = document.querySelector('.duck-container');
+      let duckInterval;
 
-      function createSnowflake() {
-        const snowflake = document.createElement('div');
-        snowflake.className = 'snowflake';
-        // Random horizontal position across the viewport
-        snowflake.style.left = Math.random() * window.innerWidth + 'px';
-        snowflake.style.top = '-20px';
-        snowflake.style.opacity = Math.random() * 0.7 + 0.3;
-        snowflake.style.fontSize = (Math.random() * 12 + 8) + 'px';
-        snowflake.textContent = '❄';
-        snowContainer.appendChild(snowflake);
-        setTimeout(() => {
-          snowflake.remove();
-        }, 3000);
+      function createDuck() {
+        const duck = document.createElement('div');
+        duck.className = 'duck-rain';
+        duck.style.position = 'fixed';
+        duck.style.left = Math.random() * window.innerWidth + 'px';
+        duck.style.top = '-40px';
+        duck.style.opacity = Math.random() * 0.7 + 0.3;
+        duck.style.fontSize = (32 + Math.random() * 24) + 'px';
+        duck.style.pointerEvents = 'none';
+        duck.style.userSelect = 'none';
+        duck.style.zIndex = 9999;
+        duck.textContent = '🦆';
+        duckContainer.appendChild(duck);
+        // Animate falling
+        let speed = 1 + Math.random() * 2;
+        function fall() {
+          let top = parseFloat(duck.style.top);
+          if (top < window.innerHeight) {
+            duck.style.top = (top + speed) + 'px';
+            requestAnimationFrame(fall);
+          } else {
+            duck.remove();
+          }
+        }
+        fall();
       }
 
       if (logo) {
         logo.addEventListener('mouseenter', () => {
-          snowContainer.style.display = 'block';
-          snowInterval = setInterval(createSnowflake, 120);
-          console.log('Snow effect triggered');
+          duckContainer.style.display = 'block';
+          duckInterval = setInterval(createDuck, 120);
         });
         logo.addEventListener('mouseleave', () => {
-          snowContainer.style.display = 'none';
-          clearInterval(snowInterval);
+          duckContainer.style.display = 'none';
+          clearInterval(duckInterval);
+          // Remove all ducks from the container
+          while (duckContainer.firstChild) {
+            duckContainer.removeChild(duckContainer.firstChild);
+          }
         });
       }
     });
