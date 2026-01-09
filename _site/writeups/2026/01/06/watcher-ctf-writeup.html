@@ -218,6 +218,39 @@ from cmd import get_command
     </main>
   </div>
 
+  <style>
+    .modal-img-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      cursor: zoom-out;
+      animation: fadeInModal 0.2s;
+    }
+    .modal-img-overlay img {
+      max-width: 90vw;
+      max-height: 90vh;
+      border-radius: 8px;
+      box-shadow: 0 4px 32px rgba(0,0,0,0.4);
+      background: #fff;
+      padding: 0.5em;
+      animation: popInModal 0.2s;
+    }
+    @keyframes fadeInModal {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes popInModal {
+      from { transform: scale(0.95); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+  </style>
   <script>
     // Spotlight cursor effect
     const spotlight = document.querySelector('.spotlight');
@@ -313,6 +346,34 @@ from cmd import get_command
         });
       });
     });
+      // Only target images inside the writeup content
+      const content = document.querySelector('main');
+        content.querySelectorAll('img').forEach(img => {
+          img.style.cursor = 'zoom-in';
+          img.addEventListener('click', function(e) {
+            e.stopPropagation();
+            // Create overlay
+            let overlay = document.createElement('div');
+            overlay.className = 'modal-img-overlay';
+            // Clone the image for modal
+            let modalImg = document.createElement('img');
+            modalImg.src = img.src;
+            modalImg.alt = img.alt;
+            overlay.appendChild(modalImg);
+            document.body.appendChild(overlay);
+            // Remove overlay on click or ESC
+            console.log(overlay)
+            function removeOverlay() {
+              overlay.remove();
+              document.removeEventListener('keydown', escListener);
+            }
+            overlay.addEventListener('click', removeOverlay);
+            function escListener(ev) {
+              if (ev.key === 'Escape') removeOverlay();
+            }
+            document.addEventListener('keydown', escListener);
+          });
+      });
   </script>
 </body>
 </html>
