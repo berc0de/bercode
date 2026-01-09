@@ -4,9 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pickle Rick TryHackMe CTF – Write Up | Minimalist Portfolio</title>
-<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="stylesheet" href="/gooduck/assets/css/style.css">
 
-<link rel="stylesheet" href="/assets/css/posts.css">
+<link rel="stylesheet" href="/gooduck/assets/css/posts.css">
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -27,10 +27,10 @@
                   </div>
                 </div>
       <nav class="nav-links">
-        <a href="/#home">Home</a>
-        <a href="/#experience">Experience</a>
-        <a href="/#certifications">Certifications</a>
-        <a href="/write-ups.html" class="active">Write-ups</a>
+        <a href="/gooduck/#home">Home</a>
+        <a href="/gooduck/#experience">Experience</a>
+        <a href="/gooduck/#certifications">Certifications</a>
+        <a href="/gooduck/write-ups.html" class="active">Write-ups</a>
       </nav>
       <div class="social-links">
         <a href="https://github.com/yourusername" target="_blank"><i class="fab fa-github"></i></a>
@@ -62,7 +62,7 @@
 
 <p>My initial step in approaching this challenge was to perform network discovery on the target machine. I used nmap to scan the IP address <strong>10.10.105.232</strong> for open ports and services:</p>
 
-<div class="post-img"><img src="/assets/img/picklerick/0.png" alt="Alt text" /></div>
+<div class="post-img"><img src="/gooduck/assets/img/picklerick/0.png" alt="Alt text" /></div>
 
 <p>The nmap scan revealed two open ports:</p>
 <ul>
@@ -72,63 +72,63 @@
 
 <p>The presence of an HTTP service on port 80 indicated a web server. To facilitate access, I added the target IP and a custom hostname (<strong>picklerick.thm</strong>) to my <strong>/etc/hosts</strong> file:</p>
 
-<div class="post-img"><img src="/assets/img/picklerick/1.png" alt="Alt text" /></div>
+<div class="post-img"><img src="/gooduck/assets/img/picklerick/1.png" alt="Alt text" /></div>
 
 <p>Navigating to <strong>http://picklerick.thm/</strong> in a web browser displayed a static page titled “Help Morty!” with a message from Rick. There were no immediate interactive elements.</p>
 
-<div class="post-img"><img src="/assets/img/picklerick/2.jpg" alt="Alt text" /></div>
+<div class="post-img"><img src="/gooduck/assets/img/picklerick/2.jpg" alt="Alt text" /></div>
 
 <p>To uncover more information, I inspected the page’s source code <strong>(view-source:http://picklerick.thm/)</strong>. This revealed a hidden comment:</p>
 
-<div class="post-img"><img src="/assets/img/picklerick/3.png" alt="Alt text" /></div>
+<div class="post-img"><img src="/gooduck/assets/img/picklerick/3.png" alt="Alt text" /></div>
 
 <p>This username, <strong>R1ckRul3s</strong>, was a valuable piece of information, but its intended use was unclear at this stage. My next logical step was to perform a directory scan to uncover hidden files or directories on the web server. I used <strong>gobuster</strong>.</p>
 
-<div class="post-img"><img src="/assets/img/picklerick/4.png" alt="Alt text" /></div>
+<div class="post-img"><img src="/gooduck/assets/img/picklerick/4.png" alt="Alt text" /></div>
 
 <p>The gobuster scan identified several files and directories. The <strong>/login.php</strong> page presented a simple login form. I attempted to use the discovered username R1ckRul3s and brute force the password but failed.</p>
 
-<div class="post-img"><img src="/assets/img/picklerick/5.png" alt="Alt text" /></div>
+<div class="post-img"><img src="/gooduck/assets/img/picklerick/5.png" alt="Alt text" /></div>
 
 <p>I then examined the /robots.txt file, which contained the string <strong>“Wubbalubbadubdub”</strong>. Recognizing this as Rick’s iconic catchphrase, I tried it as the password for the <strong>/login.php</strong> page, successfully gaining access.</p>
 
-<div class="post-img"><img src="/assets/img/picklerick/6.png" alt="Alt text" /></div>
-<div class="post-img"><img src="/assets/img/picklerick/7.png" alt="Alt text" /></div>
+<div class="post-img"><img src="/gooduck/assets/img/picklerick/6.png" alt="Alt text" /></div>
+<div class="post-img"><img src="/gooduck/assets/img/picklerick/7.png" alt="Alt text" /></div>
 
 <p>Upon successful login, I was redirected to <strong>/portal.php</strong>, which featured a “Command Panel” with an input box. This suggested a command injection vulnerability. I tested it with a basic Linux command, <strong>ls</strong>, to list files and directories in the current working directory</p>
 
-<div class="post-img"><img src="/assets/img/picklerick/8.png" alt="Alt text" /></div>
+<div class="post-img"><img src="/gooduck/assets/img/picklerick/8.png" alt="Alt text" /></div>
 
 <p>The output of ls revealed a file named <strong>Sup3rS3cretPickl3Ingred.txt</strong> that was not found during the initial gobuster scan. Navigating directly to <strong>http://picklerick.thm/Sup3rS3cretPickl3Ingred.txt</strong> in my browser revealed the first ingredient.</p>
 
-<div class="post-img"><img src="/assets/img/picklerick/9.png" alt="Alt text" /></div>
+<div class="post-img"><img src="/gooduck/assets/img/picklerick/9.png" alt="Alt text" /></div>
 <h2 id="task-2-what-is-the-second-ingredient-in-ricks-potion">Task 2: What is the second ingredient in Rick’s potion?</h2>
 
 <p>Returning to the command panel, I continued exploring the file system. I used <strong>ls /home</strong> to list the contents of the <strong>/home</strong> directory, which revealed a user directory named <strong>rick</strong></p>
 
-<div class="post-img"><img src="/assets/img/picklerick/10.png" alt="Alt text" /></div>
+<div class="post-img"><img src="/gooduck/assets/img/picklerick/10.png" alt="Alt text" /></div>
 
 <p>To investigate further, I ran <strong>ls -la /home/rick</strong> to list all files and their permissions within Rick’s home directory. This command revealed a file named second ingredients.</p>
 
-<div class="post-img"><img src="/assets/img/picklerick/11.png" alt="Alt text" /></div>
+<div class="post-img"><img src="/gooduck/assets/img/picklerick/11.png" alt="Alt text" /></div>
 
 <p>Attempting to read the contents of second ingredients using <strong>cat /home/rick/”second ingredients”</strong> resulted in an error message: “Command disabled to make it hard for future PICKLEEEE RICCCKKKK.” This indicated that direct cat commands were blocked.</p>
 
-<div class="post-img"><img src="/assets/img/picklerick/12.png" alt="Alt text" /></div>
+<div class="post-img"><img src="/gooduck/assets/img/picklerick/12.png" alt="Alt text" /></div>
 
 <p>To bypass this restriction, I decided to establish a reverse shell. I set up a Netcat listener on my attacking machine:</p>
 
-<div class="post-img"><img src="/assets/img/picklerick/13.png" alt="Alt text" /></div>
+<div class="post-img"><img src="/gooduck/assets/img/picklerick/13.png" alt="Alt text" /></div>
 
 <p>Next, I used the command panel to execute a BusyBox reverse shell, connecting back to my listener. (Note: The IP address changed due to a machine restart.)</p>
 
-<div class="post-img"><img src="/assets/img/picklerick/14.png" alt="Alt text" /></div>
-<div class="post-img"><img src="/assets/img/picklerick/15.png" alt="Alt text" /></div>
+<div class="post-img"><img src="/gooduck/assets/img/picklerick/14.png" alt="Alt text" /></div>
+<div class="post-img"><img src="/gooduck/assets/img/picklerick/15.png" alt="Alt text" /></div>
 
 <p>Upon receiving the connection, I stabilized the reverse shell for better interactivity. From within the stabilized shell, I navigated to <strong>/home/rick</strong> and successfully read the second ingredients file using cat, revealing the second ingredient.</p>
 
-<div class="post-img"><img src="/assets/img/picklerick/16.png" alt="Alt text" /></div>
-<div class="post-img"><img src="/assets/img/picklerick/17.png" alt="Alt text" /></div>
+<div class="post-img"><img src="/gooduck/assets/img/picklerick/16.png" alt="Alt text" /></div>
+<div class="post-img"><img src="/gooduck/assets/img/picklerick/17.png" alt="Alt text" /></div>
 
 <h2 id="task-3-what-is-the-last-and-final-ingredient">Task 3: What is the last and final ingredient?</h2>
 
@@ -136,18 +136,18 @@
 
 <p>The output showed that the <strong>www-data</strong> user had <strong>NOPASSWD: ALL</strong> privileges, meaning it could execute any command as root without needing a password. This was a critical finding for privilege escalation.</p>
 
-<div class="post-img"><img src="/assets/img/picklerick/18.png" alt="Alt text" /></div>
+<div class="post-img"><img src="/gooduck/assets/img/picklerick/18.png" alt="Alt text" /></div>
 
 <p>After doing some searching in the file folders. I attempted to access the <strong>/root</strong> directory, but was initially denied due to permissions:</p>
 
-<div class="post-img"><img src="/assets/img/picklerick/19.png" alt="Alt text" /></div>
-<div class="post-img"><img src="/assets/img/picklerick/20.png" alt="Alt text" /></div>
+<div class="post-img"><img src="/gooduck/assets/img/picklerick/19.png" alt="Alt text" /></div>
+<div class="post-img"><img src="/gooduck/assets/img/picklerick/20.png" alt="Alt text" /></div>
 
 <p>However, leveraging the NOPASSWD sudo privilege, I could list the contents of <strong>/root</strong> using <strong>sudo ls -la /root</strong>. This revealed a file named <strong>3rd.txt</strong>.</p>
 
 <p>Finally, I used <strong>sudo cat /root/3rd.txt</strong> to read the contents of the file, successfully obtaining the third and final ingredient.</p>
 
-<div class="post-img"><img src="/assets/img/picklerick/21.png" alt="Alt text" /></div>
+<div class="post-img"><img src="/gooduck/assets/img/picklerick/21.png" alt="Alt text" /></div>
 
 <h2 id="conclusion">Conclusion</h2>
 <p>This challenge provided a comprehensive experience in web exploitation, including network scanning, directory enumeration, source code analysis, command injection. All three ingredients were successfully retrieved, completing Rick’s potion.</p>

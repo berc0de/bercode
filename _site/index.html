@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Home | Minimalist Portfolio</title>
-<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="stylesheet" href="/gooduck/assets/css/style.css">
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -15,12 +15,13 @@
 <body>
   <!-- Spotlight Cursor Effect -->
   <div class="spotlight"></div>
+  <div class="snow-container"></div>
 
   <div class="container">
     <div class="content-area">
       <aside class="sidebar">
         <div class="profile-image">
-          <img src="/assets/img/avata.gif" alt="Profile Image" />
+          <img src="/gooduck/assets/img/avata.gif" alt="Profile Image" />
         </div>
                 <div class="logo-quack-wrap">
                   <div class="logo">
@@ -46,7 +47,7 @@
           <a href="#home" class="active">Home</a>
           <a href="#experience">Experience</a>
           <a href="#certifications">Certifications</a>
-          <a href="/write-ups.html">Write-ups</a>
+          <a href="/gooduck/write-ups.html">Write-ups</a>
         </nav>
         <div class="social-links">
           <a href="https://github.com/go0duck" target="_blank" title="Github"><i class="fab fa-github"></i></a>
@@ -129,58 +130,49 @@
   <h2>Write-ups</h2>
   <div class="writeups-grid">
     
-    <div class="writeup-card">
-      <h3>DockMagic CTF Writeup</h3>
-      <p><h1 id="tryhackme-dockmagic-writeup">TryHackMe: DockMagic Writeup</h1>
+      
+      <a href="/gooduck//writeups/2026/01/06/watcher-ctf-writeup.html" class="writeup-card" style="text-decoration:none; color:inherit;">
+        <h3>Watcher CTF Writeup</h3>
+        <p><h1 id="tryhackme-watcher-writeup">TryHackMe: Watcher Writeup</h1>
 
 </p>
-      <div class="writeup-tags">
-        
-        <span class="writeup-tag">writeups</span>
-        
-      </div>
-      <a href="/writeups/2026/01/08/dockmagic-ctf-writeup.html" class="read-more">Read More →</a>
-    </div>
-    
-    <div class="writeup-card">
-      <h3>Watcher CTF Writeup</h3>
-      <p><h1 id="tryhackme-watcher-writeup">TryHackMe: Watcher Writeup</h1>
+        <div class="writeup-tags">
+          
+          <span class="writeup-tag">writeups</span>
+          
+        </div>
+        <span class="read-more">Read More →</span>
+      </a>
+      
+      <a href="/gooduck//writeups/2025/12/31/toc2-ctf-writeup.html" class="writeup-card" style="text-decoration:none; color:inherit;">
+        <h3>TOCTOU CTF Writeup</h3>
+        <p><h1 id="toc2-ctf--write-up">TOC2 CTF – Write Up</h1>
 
 </p>
-      <div class="writeup-tags">
-        
-        <span class="writeup-tag">writeups</span>
-        
-      </div>
-      <a href="/writeups/2026/01/06/watcher-ctf-writeup.html" class="read-more">Read More →</a>
-    </div>
-    
-    <div class="writeup-card">
-      <h3>TOCTOU CTF Writeup</h3>
-      <p><h1 id="toc2-ctf--write-up">TOC2 CTF – Write Up</h1>
+        <div class="writeup-tags">
+          
+          <span class="writeup-tag">writeups</span>
+          
+        </div>
+        <span class="read-more">Read More →</span>
+      </a>
+      
+      <a href="/gooduck//writeups/2025/07/18/picklerick-ctf-writeup.html" class="writeup-card" style="text-decoration:none; color:inherit;">
+        <h3>Pickle Rick TryHackMe CTF – Write Up</h3>
+        <p><h1 id="pickle-rick-tryhackme-ctf--write-up">Pickle Rick TryHackMe CTF – Write Up</h1>
 
 </p>
-      <div class="writeup-tags">
-        
-        <span class="writeup-tag">writeups</span>
-        
-      </div>
-      <a href="/writeups/2025/12/31/toc2-ctf-writeup.html" class="read-more">Read More →</a>
-    </div>
-    
-    <div class="writeup-card">
-      <h3>Pickle Rick TryHackMe CTF – Write Up</h3>
-      <p><h1 id="pickle-rick-tryhackme-ctf--write-up">Pickle Rick TryHackMe CTF – Write Up</h1>
-
-</p>
-      <div class="writeup-tags">
-        
-        <span class="writeup-tag">writeups</span>
-        
-      </div>
-      <a href="/writeups/2025/07/18/picklerick-ctf-writeup.html" class="read-more">Read More →</a>
-    </div>
-    
+        <div class="writeup-tags">
+          
+          <span class="writeup-tag">writeups</span>
+          
+        </div>
+        <span class="read-more">Read More →</span>
+      </a>
+      
+  </div>
+  <div class="writeups-all-btn-container" style="text-align:center; margin-top:2em;">
+    <a href="/gooduck/write-ups.html" class="writeups-all-btn" style="display:inline-block; padding:0.75em 2em; background:#222; color:#fff; border-radius:4px; text-decoration:none; font-weight:bold;">View All Write-ups</a>
   </div>
 </section>
 
@@ -314,6 +306,38 @@
 
         // Start typing effect after a short delay
         setTimeout(typeWriter, 500);
+      }
+
+      // Snow particle effect on logo hover
+      const logo = document.querySelector('.profile-image');
+      const snowContainer = document.querySelector('.snow-container');
+      let snowInterval;
+
+      function createSnowflake() {
+        const snowflake = document.createElement('div');
+        snowflake.className = 'snowflake';
+        // Random horizontal position across the viewport
+        snowflake.style.left = Math.random() * window.innerWidth + 'px';
+        snowflake.style.top = '-20px';
+        snowflake.style.opacity = Math.random() * 0.7 + 0.3;
+        snowflake.style.fontSize = (Math.random() * 12 + 8) + 'px';
+        snowflake.textContent = '❄';
+        snowContainer.appendChild(snowflake);
+        setTimeout(() => {
+          snowflake.remove();
+        }, 3000);
+      }
+
+      if (logo) {
+        logo.addEventListener('mouseenter', () => {
+          snowContainer.style.display = 'block';
+          snowInterval = setInterval(createSnowflake, 120);
+          console.log('Snow effect triggered');
+        });
+        logo.addEventListener('mouseleave', () => {
+          snowContainer.style.display = 'none';
+          clearInterval(snowInterval);
+        });
       }
     });
   </script>

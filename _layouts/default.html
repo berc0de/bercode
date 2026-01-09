@@ -8,6 +8,7 @@
 <body>
   <!-- Spotlight Cursor Effect -->
   <div class="spotlight"></div>
+  <div class="snow-container"></div>
 
   <div class="container">
     <div class="content-area">
@@ -179,6 +180,38 @@
 
         // Start typing effect after a short delay
         setTimeout(typeWriter, 500);
+      }
+
+      // Snow particle effect on logo hover
+      const logo = document.querySelector('.profile-image');
+      const snowContainer = document.querySelector('.snow-container');
+      let snowInterval;
+
+      function createSnowflake() {
+        const snowflake = document.createElement('div');
+        snowflake.className = 'snowflake';
+        // Random horizontal position across the viewport
+        snowflake.style.left = Math.random() * window.innerWidth + 'px';
+        snowflake.style.top = '-20px';
+        snowflake.style.opacity = Math.random() * 0.7 + 0.3;
+        snowflake.style.fontSize = (Math.random() * 12 + 8) + 'px';
+        snowflake.textContent = '❄';
+        snowContainer.appendChild(snowflake);
+        setTimeout(() => {
+          snowflake.remove();
+        }, 3000);
+      }
+
+      if (logo) {
+        logo.addEventListener('mouseenter', () => {
+          snowContainer.style.display = 'block';
+          snowInterval = setInterval(createSnowflake, 120);
+          console.log('Snow effect triggered');
+        });
+        logo.addEventListener('mouseleave', () => {
+          snowContainer.style.display = 'none';
+          clearInterval(snowInterval);
+        });
       }
     });
   </script>

@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ExfilNode CTF Writeup | Minimalist Portfolio</title>
+<link rel="stylesheet" href="/gooduck/assets/css/style.css">
+
+<link rel="stylesheet" href="/gooduck/assets/css/posts.css">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link rel="icon" href="data:,">
+<meta name="description" content="Cybersecurity professional specializing in ethical hacking, penetration testing, and threat hunting.">
+<meta name="keywords" content="cybersecurity, ethical hacking, penetration testing, threat hunting, security analyst">
+</head>
+<body>
+  <!-- Spotlight Cursor Effect -->
+  <div class="spotlight"></div>
+
+  <header class="header-navbar">
+    <div class="header-inner">
+       <div class="logo-quack-wrap">
+                  <div class="logo">
+                    <span class="quack-text">QUACK</span>
+                    Gooduck
+                  </div>
+                </div>
+      <nav class="nav-links">
+        <a href="/gooduck/#home">Home</a>
+        <a href="/gooduck/#experience">Experience</a>
+        <a href="/gooduck/#certifications">Certifications</a>
+        <a href="/gooduck/write-ups.html" class="active">Write-ups</a>
+      </nav>
+      <div class="social-links">
+        <a href="https://github.com/yourusername" target="_blank"><i class="fab fa-github"></i></a>
+        <a href="https://linkedin.com/in/yourprofile" target="_blank"><i class="fab fa-linkedin"></i></a>
+        <a href="mailto:your.email@example.com"><i class="fas fa-envelope"></i></a>
+      </div>
+    </div>
+  </header>
+  <div class="container post-container">
+    <main>
+      <h1 id="tryhackme-exfilnode-writeup">TryHackMe: ExfilNode Writeup</h1>
+
+<table>
+  <tbody>
+    <tr>
+      <td><strong>Difficulty:</strong> Medium</td>
+      <td><strong>Focus:</strong> Linux, Forensics, Exfiltration.</td>
+    </tr>
+  </tbody>
+</table>
+
+<blockquote>
+  <p><strong>Room link:</strong> <a href="https://tryhackme.com/room/exfilnode">https://tryhackme.com/room/exfilnode</a></p>
+</blockquote>
+
+<p>Hey everyone! Today we are diving into a digital forensics challenge on TryHackMe called <strong>ExfilNode</strong>. This one is a classic “insider threat” scenario where we have to piece together the trail left by an ex-employee named Liam who was up to some shady business.</p>
+
+<p>I’ll be walking you through my thought process as we hunt for footprints in his workstation. Let’s get to work!</p>
+
+<hr />
+
+<p><strong>Q1: When did Liam last log into the system?</strong></p>
+
+<p>I started by digging through the authentication logs. On Debian-based systems, <code class="language-plaintext highlighter-rouge">var/log/auth.log</code> is the place to be. I filtered for Liam’s session openings, specifically focusing on the Gnome Display Manager (gdm) to find his GUI login.</p>
+<ul>
+  <li><strong>Command:</strong> <code class="language-plaintext highlighter-rouge">cat var/log/auth.log | grep -a "user liam" | grep -a "session opened" | grep -a gdm</code></li>
+</ul>
+
+<div class="post-img"><img src="/gooduck/assets/img/exfilnode/1.png" /></div>
+
+<p><strong>Q2: What was the timezone of Liam’s device?</strong></p>
+
+<p>This is a crucial step in forensics so we can sync our timeline with the real world. This was the easiest part of the recon.</p>
+<ul>
+  <li><strong>Command:</strong> <code class="language-plaintext highlighter-rouge">cat etc/timezone</code></li>
+</ul>
+
+<div class="post-img"><img src="/gooduck/assets/img/exfilnode/2.png" /></div>
+
+<p><strong>Q3:What is the serial number of the USB that was inserted by Liam?</strong></p>
+
+<p>I looked into <code class="language-plaintext highlighter-rouge">var/log/syslog</code> for any USB-related events immediately following Liam’s login.</p>
+
+<ul>
+  <li><strong>Command:</strong> <code class="language-plaintext highlighter-rouge">cat var/log/syslog | grep -a "usb"</code></li>
+</ul>
+
+<div class="post-img"><img src="/gooduck/assets/img/exfilnode/3.png" /></div>
+
+<p><strong>Q4: When was the USB connected to the system? (Format: YYYY-MM-DD HH:MM:SS)?</strong></p>
+
+<p>Once you find the registration entry, the serial number and the exact timestamp (YYYY-MM-DD HH:MM:SS) are right there in the same block of text.</p>
+
+<p><strong>Q5: What command was executed when Liam ran ‘transferfiles’?</strong></p>
+
+<p>In Linux, users can define shortcuts in their <code class="language-plaintext highlighter-rouge">.bashrc</code> file. I checked Liam’s home directory to see what that alias was actually doing.</p>
+<ul>
+  <li><strong>Command:</strong> <code class="language-plaintext highlighter-rouge">cat home/liam/.bashrc | grep -a transferfiles</code></li>
+</ul>
+
+<div class="post-img"><img src="/gooduck/assets/img/exfilnode/4.png" /></div>
+
+<p><strong>Q6: What command did Liam execute to transfer the exfiltrated files to an external server?</strong></p>
+
+<p>The <code class="language-plaintext highlighter-rouge">.bash_history</code> file is a goldmine for forensic investigators. It records the literal commands a user typed in their terminal.</p>
+<ul>
+  <li><strong>Command:</strong> <code class="language-plaintext highlighter-rouge">cat home/liam/.bash_history</code></li>
+</ul>
+
+<div class="post-img"><img src="/gooduck/assets/img/exfilnode/5.png" /></div>
+
+<p><strong>Q7: What is the IP address of the domain to which Liam transferred the files to?</strong></p>
+
+<p>The history showed a domain name, but not an IP. By checking the <code class="language-plaintext highlighter-rouge">etc/hosts</code> file, we can see if Liam manually mapped that domain to a specific IP address to bypass DNS.</p>
+<ul>
+  <li><strong>Command:</strong> <code class="language-plaintext highlighter-rouge">cat etc/hosts</code></li>
+</ul>
+
+<div class="post-img"><img src="/gooduck/assets/img/exfilnode/6.png" /></div>
+
+<p><strong>Q8: Which directory was the user in when they created the file ‘mth’?</strong></p>
+
+<p>Whenever someone uses <code class="language-plaintext highlighter-rouge">sudo</code>, the event is logged in <code class="language-plaintext highlighter-rouge">auth.log</code>, including the Working Directory (PWD). This is a great way to find where a user was when they ran privileged commands.</p>
+<ul>
+  <li><strong>Command:</strong> <code class="language-plaintext highlighter-rouge">cat var/log/auth.log | grep -a mth</code></li>
+</ul>
+
+<div class="post-img"><img src="/gooduck/assets/img/exfilnode/7.png" /></div>
+
+<p><strong>Q9: Remember Henry, the external entity helping Liam during the exfiltration? What was the amount in USD that Henry had to give Liam for this exfiltration task?</strong></p>
+
+<p>We found the file <code class="language-plaintext highlighter-rouge">mth</code> (likely standing for “Message To Henry”). Reading its contents reveals the “contract” between them.</p>
+
+<div class="post-img"><img src="/gooduck/assets/img/exfilnode/8.png" /></div>
+
+<p><strong>Q10: When was the USB disconnected by Liam? (Format: YYYY-MM-DD HH:MM:SS)</strong></p>
+
+<p>We head back to the syslog and look for the “disconnect” event for the specific USB bus Liam was using (usb 1-1).</p>
+<ul>
+  <li><strong>Command:</strong> <code class="language-plaintext highlighter-rouge">cat var/log/syslog | grep -a "usb 1-1" | grep -a "disconnect"</code></li>
+</ul>
+
+<div class="post-img"><img src="/gooduck/assets/img/exfilnode/9.png" /></div>
+
+<p><strong>Q11: There is a .hidden/ folder that Liam listed the contents of in his commands. What is the full path of this directory?</strong></p>
+
+<p>Liam interacted with a hidden folder. Using <code class="language-plaintext highlighter-rouge">find</code>, we located two possibilities. One was empty, while the other sat in the Public folder and was packed with files—the clear winner for an exfiltration staging area.</p>
+<ul>
+  <li><strong>Command:</strong> <code class="language-plaintext highlighter-rouge">find /mnt/liam_disk -type d -name ".hidden" 2&gt;/dev/null</code></li>
+</ul>
+
+<div class="post-img"><img src="/gooduck/assets/img/exfilnode/10.png" /></div>
+
+<p><strong>Q12: Which files are likely timstomped in this .hidden/ directory (answer in alphabetical order, ascending, separated by a comma. e.g example1.txt,example2.txt)</strong></p>
+
+<p>Timestomping is an anti-forensic technique where an attacker changes file modified dates to make them look old or “legitimate.” In a directory where most files are from 2025, the ones with wildly different dates stick out like a sore thumb.</p>
+<ul>
+  <li><strong>Command:</strong> <code class="language-plaintext highlighter-rouge">ls -la /mnt/liam_disk/home/liam/Public/.hidden</code></li>
+</ul>
+
+<div class="post-img"><img src="/gooduck/assets/img/exfilnode/11.png" /></div>
+
+<p><strong>Q13: Liam thought the work was done, but the external entity had other plans. Which IP address was connected via SSH to Liam’s machine a few hours after the exfiltration?</strong></p>
+
+<p>I checked for incoming SSH connections after the exfiltration window.</p>
+<ul>
+  <li><strong>Command:</strong> <code class="language-plaintext highlighter-rouge">cat var/log/auth.log | grep -a "sshd"</code></li>
+</ul>
+
+<div class="post-img"><img src="/gooduck/assets/img/exfilnode/12.png" /></div>
+
+<p><strong>Q14: Which cronjob did the external entity set up inside Liam’s machine?</strong></p>
+
+<p>The external entity wanted persistence. They set up a scheduled task (cronjob). While system-wide cronjobs are common, this one was hidden in Liam’s user-specific crontab.</p>
+<ul>
+  <li><strong>Command:</strong> <code class="language-plaintext highlighter-rouge">sudo cat var/spool/cron/crontabs/liam | grep -v "#"</code></li>
+</ul>
+
+<div class="post-img"><img src="/gooduck/assets/img/exfilnode/13.png" /></div>
+
+    </main>
+  </div>
+
+  <script>
+    // Spotlight cursor effect
+    const spotlight = document.querySelector('.spotlight');
+
+    document.addEventListener('mousemove', (e) => {
+      const x = (e.clientX / window.innerWidth) * 100;
+      const y = (e.clientY / window.innerHeight) * 100;
+      spotlight.style.setProperty('--x', `${x}%`);
+      spotlight.style.setProperty('--y', `${y}%`);
+    });
+
+    // Focus effect for cards
+    document.addEventListener('DOMContentLoaded', () => {
+      const cards = document.querySelectorAll('.project-card, .job-item');
+
+      cards.forEach(card => {
+        card.addEventListener('mouseenter', () => {
+          document.body.classList.add('focus-mode');
+        });
+
+        card.addEventListener('mouseleave', () => {
+          document.body.classList.remove('focus-mode');
+        });
+      });
+
+      // Experience tabs functionality
+      const jobItems = document.querySelectorAll('.job-item');
+      const jobDetails = document.querySelector('.job-details');
+
+      jobItems.forEach((item, index) => {
+        item.addEventListener('click', () => {
+          // Remove active class from all items
+          jobItems.forEach(i => i.classList.remove('active'));
+          // Add active class to clicked item
+          item.classList.add('active');
+
+          // Update job details
+          const jobTitle = item.querySelector('h3').textContent;
+          const company = item.querySelector('.company').textContent;
+          const bullets = item.getAttribute('data-bullets').split('|');
+
+          jobDetails.querySelector('h3').textContent = jobTitle;
+          jobDetails.querySelector('.role').textContent = company;
+
+          // Update bullets
+          const ul = jobDetails.querySelector('ul');
+          ul.innerHTML = '';
+          bullets.forEach(bullet => {
+            const li = document.createElement('li');
+            li.textContent = bullet;
+            ul.appendChild(li);
+          });
+        });
+      });
+
+      // Navigation highlighting based on scroll position
+      const navLinks = document.querySelectorAll('.nav-links a');
+      const sections = document.querySelectorAll('section[id]');
+
+      function highlightNavOnScroll() {
+        const scrollY = window.pageYOffset;
+
+        sections.forEach(section => {
+          const sectionTop = section.offsetTop - 100; // Offset for better UX
+          const sectionHeight = section.offsetHeight;
+          const sectionId = section.getAttribute('id');
+
+          if (scrollY >= sectionTop && scrollY < sectionTop + sectionHeight) {
+            navLinks.forEach(link => {
+              link.classList.remove('active');
+              if (link.getAttribute('href') === `#${sectionId}`) {
+                link.classList.add('active');
+              }
+            });
+          }
+        });
+      }
+
+      // Smooth scrolling for navigation
+      navLinks.forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+          const href = this.getAttribute('href');
+          if (href.startsWith('#')) {
+            e.preventDefault();
+            const target = document.querySelector(href);
+            if (target) {
+              target.scrollIntoView({
+                behavior: 'smooth'
+              });
+            }
+          }
+          // For external links or page links, let them navigate normally
+        });
+      });
+    });
+  </script>
+</body>
+</html>
