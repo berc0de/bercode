@@ -4,7 +4,7 @@ title: "TOCTOU CTF Writeup"
 date: 2025-12-31
 categories: writeups
 tags: Linux Boot2Root Web TOCTOU 
-exerpt: It's a setup... Can you get the flags in time?
+description: It's a setup... Can you get the flags in time?
 difficulty: Medium
 ---
 

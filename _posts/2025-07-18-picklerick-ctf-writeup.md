@@ -4,11 +4,11 @@ title: "Pickle Rick TryHackMe CTF – Write Up"
 date: 2025-07-18
 categories: writeups
 tags: Linux Web Boot2Root PrivEsc Easy
-exerpt: A Rick and Morty CTF. Help turn Rick back into a human!
+description: A Rick and Morty CTF. Help turn Rick back into a human!
 difficulty: Easy
 ---
 
-# Pickle Rick TryHackMe CTF – Write Up
+# Pickle Rick CTF – Write Up
 
 **Difficulty:** {{page.difficulty}} | **Focus:** {{ page.tags | join: ', ' }}.
 

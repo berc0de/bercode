@@ -4,7 +4,7 @@ title: "Watcher CTF Writeup"
 date: 2026-01-06
 categories: writeups
 tags: Linux Boot2Root Web PrivEsc 
-exerpt: A boot2root Linux machine utilising web exploits along with some common privilege escalation techniques.
+description: A boot2root Linux machine utilising web exploits along with some common privilege escalation techniques.
 difficulty: Medium
 ---
 

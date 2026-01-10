@@ -4,7 +4,7 @@ title: "DockMagic CTF Writeup"
 date: 2026-01-08
 categories: writeups
 tags: Linux Boot2Root Web PrivEsc Docker ImageMagick
-exerpt: In a land of magic, a wizard escaped from his confinement and embarks on a new adventure.
+description: In a land of magic, a wizard escaped from his confinement and embarks on a new adventure.
 difficulty: Medium
 ---
 

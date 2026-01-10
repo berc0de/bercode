@@ -4,7 +4,7 @@ title: "ExfilNode CTF Writeup"
 date: 2026-01-09
 categories: writeups
 tags: Linux Forensics Exfiltration
-exerpt: Continue hunting for the exfiltration footprints in the ex-employee's personal workstation.
+description: Continue hunting for the exfiltration footprints in the ex-employee's personal workstation.
 difficulty: Medium
 ---
 

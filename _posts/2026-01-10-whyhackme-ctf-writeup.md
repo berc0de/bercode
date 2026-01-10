@@ -4,7 +4,7 @@ title: "WhyHackMe CTF Writeup"
 date: 2026-01-10
 categories: writeups
 tags: Linux 
-exerpt: Dive into the depths of security and analysis with WhyHackMe.
+description: Dive into the depths of security and analysis with WhyHackMe.
 difficulty: Medium
 ---
 
@@ -14,7 +14,6 @@ difficulty: Medium
 **Difficulty:** {{page.difficulty}} | **Focus:** {{ page.tags | join: ', ' }}.
 
 > **Room link:** [https://tryhackme.com/room/whyhackme](https://tryhackme.com/room/whyhackme)
-
 
 Today we are diving into the depths of security and analysis with the WhyHackMe challenge, everyone. This room involves a variety of techniques ranging from stored XSS and internal requests to network traffic analysis and exploiting backdoors.
 

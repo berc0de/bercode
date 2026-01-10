@@ -80,7 +80,9 @@ title: Home
       {% for post in random_posts %}
       <a href="/gooduck/{{ post.url }}" class="writeup-card" style="text-decoration:none; color:inherit;">
         <h3>{{ post.title }}</h3>
-        <p>{{ post.excerpt }}</p>
+        <p class="writeup-excerpt">
+            {{ post.description | escape }}
+        </p>
         <div class="writeup-tags">
           {% for category in post.categories %}
           <span class="writeup-tag">{{ category }}</span>
