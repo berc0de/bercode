@@ -9,6 +9,13 @@ difficulty: Medium
 ---
 
 # TryHackMe: WhyHackMe Writeup
+
+
+**Difficulty:** {{page.difficulty}} | **Focus:** {{ page.tags | join: ', ' }}.
+
+> **Room link:** [https://tryhackme.com/room/whyhackme](https://tryhackme.com/room/whyhackme)
+
+
 Today we are diving into the depths of security and analysis with the WhyHackMe challenge, everyone. This room involves a variety of techniques ranging from stored XSS and internal requests to network traffic analysis and exploiting backdoors.
 
 ---
