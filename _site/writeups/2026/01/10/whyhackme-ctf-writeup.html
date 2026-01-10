@@ -46,20 +46,6 @@
 
 <hr />
 
-<h3 id="progress-tracker--attack-path">Progress Tracker / Attack Path</h3>
-
-<ul>
-  <li><strong>Reconnaissance:</strong> Nmap scan identifies FTP, SSH, and HTTP.</li>
-  <li><strong>Initial Discovery:</strong> Anonymous FTP access reveals a note about a localhost-only credential file.</li>
-  <li><strong>Vulnerability:</strong> Stored XSS is discovered via the registration username field.</li>
-  <li><strong>Exploitation (User):</strong> XSS is leveraged to perform an internal request to retrieve credentials for the user <code class="language-plaintext highlighter-rouge">jack</code>.</li>
-  <li><strong>Lateral Movement:</strong> Analyzing a PCAP file and manipulating <code class="language-plaintext highlighter-rouge">iptables</code> to reveal a hidden service.</li>
-  <li><strong>Privilege Escalation (www-data):</strong> Exploiting a Python backdoor found via decrypted network traffic.</li>
-  <li><strong>Root Access:</strong> Utilizing permissive sudo rights to gain full control.</li>
-</ul>
-
-<hr />
-
 <h3 id="reconnaissance">Reconnaissance</h3>
 
 <p>The initial phase begins with a comprehensive scan of the target to identify open ports and services.</p>
@@ -152,7 +138,7 @@ xhr.send(null);
 
 <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>echo -e "/bin/bash -i" &gt; exploit
 chmod +x exploit
-sudo iptables -L -t mangle --modprobe=./exploit
+sudo iptables -L -t NAT --modprobe=./exploit
 </code></pre></div></div>
 
 <p>This method did not work in this specific environment, leading back to further enumeration of the file system.</p>

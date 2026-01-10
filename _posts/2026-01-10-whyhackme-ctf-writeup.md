@@ -13,18 +13,6 @@ Today we are diving into the depths of security and analysis with the WhyHackMe 
 
 ---
 
-### Progress Tracker / Attack Path
-
-* **Reconnaissance:** Nmap scan identifies FTP, SSH, and HTTP.
-* **Initial Discovery:** Anonymous FTP access reveals a note about a localhost-only credential file.
-* **Vulnerability:** Stored XSS is discovered via the registration username field.
-* **Exploitation (User):** XSS is leveraged to perform an internal request to retrieve credentials for the user `jack`.
-* **Lateral Movement:** Analyzing a PCAP file and manipulating `iptables` to reveal a hidden service.
-* **Privilege Escalation (www-data):** Exploiting a Python backdoor found via decrypted network traffic.
-* **Root Access:** Utilizing permissive sudo rights to gain full control.
-
----
-
 ### Reconnaissance
 
 The initial phase begins with a comprehensive scan of the target to identify open ports and services.
@@ -115,7 +103,7 @@ While enumerating as `jack`, it is discovered that the user has sudo permissions
 ```
 echo -e "/bin/bash -i" > exploit
 chmod +x exploit
-sudo iptables -L -t mangle --modprobe=./exploit
+sudo iptables -L -t NAT --modprobe=./exploit
 ```
 
 This method did not work in this specific environment, leading back to further enumeration of the file system.
