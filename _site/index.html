@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Home | Minimalist Portfolio</title>
-<link rel="stylesheet" href="/gooduck/assets/css/style.css">
+  <title>Home | Berc0de</title>
+<link rel="stylesheet" href="/bercode/assets/css/style.css">
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -15,18 +15,18 @@
 <body>
   <!-- Spotlight Cursor Effect -->
   <div class="spotlight"></div>
-  <div class="duck-container"></div>
+  <div class="fish-container"></div>
 
   <div class="container">
     <div class="content-area">
       <aside class="sidebar">
         <div class="profile-image">
-          <img src="/gooduck/assets/img/avata.gif" alt="Profile Image" />
+          <img src="/bercode/assets/img/avata.gif" alt="Profile Image" />
         </div>
-                <div class="logo-quack-wrap">
+                <div class="logo-rawr-wrap">
                   <div class="logo">
-                    <span class="quack-text">QUACK</span>
-                    Gooduck
+                    <span class="rawr-text">rawr</span>
+                    Berc0de
                   </div>
                 </div>
                 <div class="profile-tags">
@@ -47,12 +47,12 @@
           <a href="#home" class="active">Home</a>
           <a href="#experience">Experience</a>
           <a href="#certifications">Certifications</a>
-          <a href="/gooduck/write-ups.html">Write-ups</a>
+          <a href="/bercode/write-ups.html">Write-ups</a>
         </nav>
         <div class="social-links">
-          <a href="https://github.com/go0duck" target="_blank" title="Github"><i class="fab fa-github"></i></a>
+          <a href="https://github.com/berc0de" target="_blank" title="Github"><i class="fab fa-github"></i></a>
           <a href="https://www.linkedin.com/in/wilbuenaventura/" title="Linkedin" target="_blank"><i class="fab fa-linkedin"></i></a>
-            <a href="https://tryhackme.com/p/gooduck" target="_blank" title="TryHackMe"><i class="fas fa-user"></i></a>
+            <a href="https://tryhackme.com/p/bercode" target="_blank" title="TryHackMe"><i class="fas fa-user"></i></a>
         </div>
       </aside>
       <main>
@@ -131,7 +131,7 @@
   <div class="writeups-grid">
     
       
-      <a href="/gooduck//writeups/2025/07/18/picklerick-ctf-writeup.html" class="writeup-card" style="text-decoration:none; color:inherit;">
+      <a href="/bercode/writeups/2025/07/18/picklerick-ctf-writeup.html" class="writeup-card" style="text-decoration:none; color:inherit;">
         <h3>Pickle Rick TryHackMe CTF – Write Up</h3>
         <p class="writeup-excerpt">
             A Rick and Morty CTF. Help turn Rick back into a human!
@@ -144,7 +144,7 @@
         <span class="read-more">Read More →</span>
       </a>
       
-      <a href="/gooduck//writeups/2026/01/10/whyhackme-ctf-writeup.html" class="writeup-card" style="text-decoration:none; color:inherit;">
+      <a href="/bercode/writeups/2026/01/10/whyhackme-ctf-writeup.html" class="writeup-card" style="text-decoration:none; color:inherit;">
         <h3>WhyHackMe CTF Writeup</h3>
         <p class="writeup-excerpt">
             Dive into the depths of security and analysis with WhyHackMe.
@@ -157,7 +157,7 @@
         <span class="read-more">Read More →</span>
       </a>
       
-      <a href="/gooduck//writeups/2026/01/06/watcher-ctf-writeup.html" class="writeup-card" style="text-decoration:none; color:inherit;">
+      <a href="/bercode/writeups/2026/01/06/watcher-ctf-writeup.html" class="writeup-card" style="text-decoration:none; color:inherit;">
         <h3>Watcher CTF Writeup</h3>
         <p class="writeup-excerpt">
             A boot2root Linux machine utilising web exploits along with some common privilege escalation techniques.
@@ -172,7 +172,7 @@
       
   </div>
   <div class="writeups-all-btn-container" style="text-align:center; margin-top:2em;">
-    <a href="/gooduck/write-ups.html" class="writeups-all-btn" style="display:inline-block; padding:0.75em 2em; background:#222; color:#fff; border-radius:4px; text-decoration:none; font-weight:bold;">View All Write-ups</a>
+    <a href="/bercode/write-ups.html" class="writeups-all-btn" style="display:inline-block; padding:0.75em 2em; background:#222; color:#fff; border-radius:4px; text-decoration:none; font-weight:bold;">View All Write-ups</a>
   </div>
   </section>
 
@@ -308,33 +308,33 @@
         setTimeout(typeWriter, 500);
       }
 
-      // Duck rain effect on profile image hover
+      // fish rain effect on profile image hover
       const logo = document.querySelector('.profile-image');
-      const duckContainer = document.querySelector('.duck-container');
-      let duckInterval;
+      const fishContainer = document.querySelector('.fish-container');
+      let fishInterval;
 
-      function createDuck() {
-        const duck = document.createElement('div');
-        duck.className = 'duck-rain';
-        duck.style.position = 'fixed';
-        duck.style.left = Math.random() * window.innerWidth + 'px';
-        duck.style.top = '-40px';
-        duck.style.opacity = Math.random() * 0.7 + 0.3;
-        duck.style.fontSize = (32 + Math.random() * 24) + 'px';
-        duck.style.pointerEvents = 'none';
-        duck.style.userSelect = 'none';
-        duck.style.zIndex = 9999;
-        duck.textContent = '🦆';
-        duckContainer.appendChild(duck);
+      function createFish() {
+        const fish = document.createElement('div');
+        fish.className = 'fish-rain';
+        fish.style.position = 'fixed';
+        fish.style.left = Math.random() * window.innerWidth + 'px';
+        fish.style.top = '-40px';
+        fish.style.opacity = Math.random() * 0.7 + 0.3;
+        fish.style.fontSize = (32 + Math.random() * 24) + 'px';
+        fish.style.pointerEvents = 'none';
+        fish.style.userSelect = 'none';
+        fish.style.zIndex = 9999;
+        fish.textContent = '🐟';
+        fishContainer.appendChild(fish);
         // Animate falling
         let speed = 1 + Math.random() * 2;
         function fall() {
-          let top = parseFloat(duck.style.top);
+          let top = parseFloat(fish.style.top);
           if (top < window.innerHeight) {
-            duck.style.top = (top + speed) + 'px';
+            fish.style.top = (top + speed) + 'px';
             requestAnimationFrame(fall);
           } else {
-            duck.remove();
+            fish.remove();
           }
         }
         fall();
@@ -342,15 +342,15 @@
 
       if (logo) {
         logo.addEventListener('mouseenter', () => {
-          duckContainer.style.display = 'block';
-          duckInterval = setInterval(createDuck, 120);
+          fishContainer.style.display = 'block';
+          fishInterval = setInterval(createFish, 120);
         });
         logo.addEventListener('mouseleave', () => {
-          duckContainer.style.display = 'none';
-          clearInterval(duckInterval);
-          // Remove all ducks from the container
-          while (duckContainer.firstChild) {
-            duckContainer.removeChild(duckContainer.firstChild);
+          fishContainer.style.display = 'none';
+          clearInterval(fishInterval);
+          // Remove all fishs from the container
+          while (fishContainer.firstChild) {
+            fishContainer.removeChild(fishContainer.firstChild);
           }
         });
       }

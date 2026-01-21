@@ -8,7 +8,7 @@
 <body>
   <!-- Spotlight Cursor Effect -->
   <div class="spotlight"></div>
-  <div class="duck-container"></div>
+  <div class="fish-container"></div>
 
   <div class="container">
     <div class="content-area">
@@ -16,10 +16,10 @@
         <div class="profile-image">
           <img src="{{ site.baseurl }}/assets/img/avata.gif" alt="Profile Image" />
         </div>
-                <div class="logo-quack-wrap">
+                <div class="logo-rawr-wrap">
                   <div class="logo">
-                    <span class="quack-text">QUACK</span>
-                    Gooduck
+                    <span class="rawr-text">rawr</span>
+                    Berc0de
                   </div>
                 </div>
                 <div class="profile-tags">
@@ -43,9 +43,9 @@
           <a href="{{ site.baseurl }}/write-ups.html">Write-ups</a>
         </nav>
         <div class="social-links">
-          <a href="https://github.com/go0duck" target="_blank" title="Github"><i class="fab fa-github"></i></a>
+          <a href="https://github.com/berc0de" target="_blank" title="Github"><i class="fab fa-github"></i></a>
           <a href="https://www.linkedin.com/in/wilbuenaventura/" title="Linkedin" target="_blank"><i class="fab fa-linkedin"></i></a>
-            <a href="https://tryhackme.com/p/gooduck" target="_blank" title="TryHackMe"><i class="fas fa-user"></i></a>
+            <a href="https://tryhackme.com/p/bercode" target="_blank" title="TryHackMe"><i class="fas fa-user"></i></a>
         </div>
       </aside>
       <main>
@@ -182,33 +182,33 @@
         setTimeout(typeWriter, 500);
       }
 
-      // Duck rain effect on profile image hover
+      // fish rain effect on profile image hover
       const logo = document.querySelector('.profile-image');
-      const duckContainer = document.querySelector('.duck-container');
-      let duckInterval;
+      const fishContainer = document.querySelector('.fish-container');
+      let fishInterval;
 
-      function createDuck() {
-        const duck = document.createElement('div');
-        duck.className = 'duck-rain';
-        duck.style.position = 'fixed';
-        duck.style.left = Math.random() * window.innerWidth + 'px';
-        duck.style.top = '-40px';
-        duck.style.opacity = Math.random() * 0.7 + 0.3;
-        duck.style.fontSize = (32 + Math.random() * 24) + 'px';
-        duck.style.pointerEvents = 'none';
-        duck.style.userSelect = 'none';
-        duck.style.zIndex = 9999;
-        duck.textContent = '🦆';
-        duckContainer.appendChild(duck);
+      function createFish() {
+        const fish = document.createElement('div');
+        fish.className = 'fish-rain';
+        fish.style.position = 'fixed';
+        fish.style.left = Math.random() * window.innerWidth + 'px';
+        fish.style.top = '-40px';
+        fish.style.opacity = Math.random() * 0.7 + 0.3;
+        fish.style.fontSize = (32 + Math.random() * 24) + 'px';
+        fish.style.pointerEvents = 'none';
+        fish.style.userSelect = 'none';
+        fish.style.zIndex = 9999;
+        fish.textContent = '🐟';
+        fishContainer.appendChild(fish);
         // Animate falling
         let speed = 1 + Math.random() * 2;
         function fall() {
-          let top = parseFloat(duck.style.top);
+          let top = parseFloat(fish.style.top);
           if (top < window.innerHeight) {
-            duck.style.top = (top + speed) + 'px';
+            fish.style.top = (top + speed) + 'px';
             requestAnimationFrame(fall);
           } else {
-            duck.remove();
+            fish.remove();
           }
         }
         fall();
@@ -216,15 +216,15 @@
 
       if (logo) {
         logo.addEventListener('mouseenter', () => {
-          duckContainer.style.display = 'block';
-          duckInterval = setInterval(createDuck, 120);
+          fishContainer.style.display = 'block';
+          fishInterval = setInterval(createFish, 120);
         });
         logo.addEventListener('mouseleave', () => {
-          duckContainer.style.display = 'none';
-          clearInterval(duckInterval);
-          // Remove all ducks from the container
-          while (duckContainer.firstChild) {
-            duckContainer.removeChild(duckContainer.firstChild);
+          fishContainer.style.display = 'none';
+          clearInterval(fishInterval);
+          // Remove all fishs from the container
+          while (fishContainer.firstChild) {
+            fishContainer.removeChild(fishContainer.firstChild);
           }
         });
       }

@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Road CTF Writeup | Minimalist Portfolio</title>
-<link rel="stylesheet" href="/gooduck/assets/css/style.css">
+  <title>Road CTF Writeup | Berc0de</title>
+<link rel="stylesheet" href="/bercode/assets/css/style.css">
 
-<link rel="stylesheet" href="/gooduck/assets/css/posts.css">
+<link rel="stylesheet" href="/bercode/assets/css/posts.css">
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -20,17 +20,17 @@
 
   <header class="header-navbar">
     <div class="header-inner">
-       <div class="logo-quack-wrap">
+       <div class="logo-rawr-wrap">
                   <div class="logo">
-                    <span class="quack-text">QUACK</span>
-                    Gooduck
+                    <span class="rawr-text">rawr</span>
+                    Berc0de
                   </div>
                 </div>
       <nav class="nav-links">
-        <a href="/gooduck/#home">Home</a>
-        <a href="/gooduck/#experience">Experience</a>
-        <a href="/gooduck/#certifications">Certifications</a>
-        <a href="/gooduck/write-ups.html" class="active">Write-ups</a>
+        <a href="/bercode/#home">Home</a>
+        <a href="/bercode/#experience">Experience</a>
+        <a href="/bercode/#certifications">Certifications</a>
+        <a href="/bercode/write-ups.html" class="active">Write-ups</a>
       </nav>
       <div class="social-links">
         <a href="https://github.com/yourusername" target="_blank"><i class="fab fa-github"></i></a>
@@ -73,7 +73,7 @@
   <li><strong>80/tcp</strong>: HTTP (Apache 2.4.41)</li>
 </ul>
 
-<div class="post-img"><img src="/gooduck/assets/img/road/1.png" /></div>
+<div class="post-img"><img src="/bercode/assets/img/road/1.png" /></div>
 
 <p>We move on to directory brute-forcing to see what the web server is hiding.</p>
 <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gobuster dir -w /usr/share/wordlists/dirb/big.txt -u http://road.thm/ -x php,html -b 400-500
@@ -85,7 +85,7 @@
   <li><strong>v2/lostpassword.php</strong></li>
 </ul>
 
-<div class="post-img"><img src="/gooduck/assets/img/road/2.png" /></div>
+<div class="post-img"><img src="/bercode/assets/img/road/2.png" /></div>
 
 <hr />
 
@@ -103,14 +103,14 @@
 
 <p>By checking the profile page, we find the admin’s email: <code class="language-plaintext highlighter-rouge">admin@sky.thm</code>.</p>
 
-<div class="post-img"><img src="/gooduck/assets/img/road/3.png" /></div>
+<div class="post-img"><img src="/bercode/assets/img/road/3.png" /></div>
 <hr />
 
 <h3 id="phase-3-exploitation-foothold">Phase 3: Exploitation (Foothold)</h3>
 
 <p>We can attempt to reset the admin’s password by intercepting the request to <code class="language-plaintext highlighter-rouge">ResetUser.php</code> using Burp Suite. We change the username/email parameter to <code class="language-plaintext highlighter-rouge">admin@sky.thm</code> and submit our own new password. The server accepts it!</p>
 
-<div class="post-img"><img src="/gooduck/assets/img/road/4.png" /></div>
+<div class="post-img"><img src="/bercode/assets/img/road/4.png" /></div>
 
 <p>With admin access, the profile image upload is now unlocked. We can use a standard PHP reverse shell.</p>
 
@@ -121,14 +121,14 @@
   <li><strong>The Hunt for the File</strong>: I initially looked in <code class="language-plaintext highlighter-rouge">/assets</code>, but the shell wasn’t there—this was a bit of a rabbit hole. By inspecting the source code and logic of <code class="language-plaintext highlighter-rouge">profile.php</code>, I found a hidden directory: <code class="language-plaintext highlighter-rouge">/v2/profileimages/</code>.</li>
 </ol>
 
-<div class="post-img"><img src="/gooduck/assets/img/road/5.png" /></div>
+<div class="post-img"><img src="/bercode/assets/img/road/5.png" /></div>
 
 <p>Trigger the shell by navigating to:
 <code class="language-plaintext highlighter-rouge">http://road.thm/v2/profileimages/shell.php</code></p>
 
 <p>We now have a shell as <code class="language-plaintext highlighter-rouge">www-data</code>.</p>
 
-<div class="post-img"><img src="/gooduck/assets/img/road/6.png" /></div>
+<div class="post-img"><img src="/bercode/assets/img/road/6.png" /></div>
 
 <hr />
 
@@ -141,18 +141,18 @@
 </code></pre></div></div>
 <p>A MongoDB instance is running locally on port <code class="language-plaintext highlighter-rouge">27017</code>.</p>
 
-<div class="post-img"><img src="/gooduck/assets/img/road/7.png" /></div>
+<div class="post-img"><img src="/bercode/assets/img/road/7.png" /></div>
 
 <p>I explored the MongoDB databases and found one named <code class="language-plaintext highlighter-rouge">backup</code>. Inside the <code class="language-plaintext highlighter-rouge">user</code> collection, I struck gold: the plain-text password for the user <code class="language-plaintext highlighter-rouge">webdeveloper</code>.</p>
 
-<div class="post-img"><img src="/gooduck/assets/img/road/8.png" /></div>
+<div class="post-img"><img src="/bercode/assets/img/road/8.png" /></div>
 
 <p>Switching to the user:</p>
 <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>su webdeveloper
 </code></pre></div></div>
 <p>We can now grab the user flag from <code class="language-plaintext highlighter-rouge">/home/webdeveloper/user.txt</code>.</p>
 
-<div class="post-img"><img src="/gooduck/assets/img/road/9.png" /></div>
+<div class="post-img"><img src="/bercode/assets/img/road/9.png" /></div>
 <hr />
 
 <h3 id="phase-5-escalation-to-root">Phase 5: Escalation to Root</h3>
@@ -162,7 +162,7 @@
 </code></pre></div></div>
 <p>The output shows we can run <code class="language-plaintext highlighter-rouge">/usr/bin/sky_backup_utility</code> with NOPASSWD, and more importantly, the <code class="language-plaintext highlighter-rouge">env_keep+=LD_PRELOAD</code> option is enabled. This allows us to load a custom shared library before the binary executes.</p>
 
-<div class="post-img"><img src="/gooduck/assets/img/road/10.png" /></div>
+<div class="post-img"><img src="/bercode/assets/img/road/10.png" /></div>
 
 <p><strong>The LD_PRELOAD Exploit:</strong></p>
 
@@ -190,7 +190,7 @@ system("/bin/sh");
   </li>
 </ol>
 
-<div class="post-img"><img src="/gooduck/assets/img/road/11.png" /></div>
+<div class="post-img"><img src="/bercode/assets/img/road/11.png" /></div>
 
 <p>We are root. You can now find the final flag in <code class="language-plaintext highlighter-rouge">/root/root.txt</code>.</p>
 

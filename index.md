@@ -78,7 +78,7 @@ title: Home
   <div class="writeups-grid">
     {% assign random_posts = site.posts | sample: 3 %}
       {% for post in random_posts %}
-      <a href="/gooduck/{{ post.url }}" class="writeup-card" style="text-decoration:none; color:inherit;">
+      <a href="/bercode{{ post.url }}" class="writeup-card" style="text-decoration:none; color:inherit;">
         <h3>{{ post.title }}</h3>
         <p class="writeup-excerpt">
             {{ post.description | escape }}
@@ -93,6 +93,6 @@ title: Home
       {% endfor %}
   </div>
   <div class="writeups-all-btn-container" style="text-align:center; margin-top:2em;">
-    <a href="/gooduck/write-ups.html" class="writeups-all-btn" style="display:inline-block; padding:0.75em 2em; background:#222; color:#fff; border-radius:4px; text-decoration:none; font-weight:bold;">View All Write-ups</a>
+    <a href="/bercode/write-ups.html" class="writeups-all-btn" style="display:inline-block; padding:0.75em 2em; background:#222; color:#fff; border-radius:4px; text-decoration:none; font-weight:bold;">View All Write-ups</a>
   </div>
   </section>

@@ -7,6 +7,13 @@
 			"command": "jekyll serve",
 			"isBackground": true,
 			"group": "build"
+		},
+		{
+			"label": "Rebuild Jekyll Site",
+			"type": "shell",
+			"command": "jekyll build",
+			"isBackground": false,
+			"group": "build"
 		}
 	]
 }
