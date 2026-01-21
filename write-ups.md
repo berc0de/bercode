@@ -6,8 +6,9 @@ title: Write-Ups
 # Write-Ups
 
 A collection of recent write-ups and CTF walkthroughs.
+<img src="https://tryhackme-badges.s3.amazonaws.com/bercode.png" alt="Your Image Badge"  class="bercode-thm-badge" />
+<input type="text" id="writeup-search" class="writeup-search" placeholder="Search write-ups..." autocomplete="off" style="width:100%;margin:2rem 0 2rem 0;display:block;padding:0.75rem 1rem;border-radius:8px;border:1px solid var(--bg-secondary);background:var(--bg-secondary);color:var(--text-primary);font-size:1rem;">
 
-<input type="text" id="writeup-search" class="writeup-search" placeholder="Search write-ups..." autocomplete="off" style="width:100%;max-width:400px;margin:2rem 0 2rem 0;display:block;padding:0.75rem 1rem;border-radius:8px;border:1px solid var(--bg-secondary);background:var(--bg-secondary);color:var(--text-primary);font-size:1rem;">
 
 <div class="writeups-grid">
 {% for post in site.posts %}
